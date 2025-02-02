@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- পূর্বের সব মেটা ট্যাগ এবং স্টাইল অপরিবর্তিত -->
+    <style>
+        .edit-btn {
+            cursor: pointer;
+            color: #0d6efd;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <!-- পূর্বের HTML স্ট্রাকচার অপরিবর্তিত -->
+
+    <script>
+        // সম্পাদনা ফাংশনালিটি যোগ করা হয়েছে
+        let editingIndex = -1;
+
+        // টেবিল আপডেট ফাংশনে এডিট বাটন যোগ
+        const updateTable = () => {
+            const data = JSON.parse(localStorage.getItem('attendance')) || [];
+            const tbody = document.getElementById('recordsBody');
+            tbody.innerHTML = '';
+
+            data.forEach((rec, index) => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${rec.employee}</td>
+                        <td>${rec.date}</td>
+                        <td class="${rec.status === 'present' ? 'text-success' : 'text-danger'}">
+                            ${rec.status.toUpperCase()}
+                        </td>
+                        <td>${rec.overtime} hours</td>
+                        <td class="edit-btn" onclick="startEditing(${index})">✏️ Edit</td>
+                        <td class="text-danger" onclick="deleteRecord(${index})" style="cursor:pointer">🗑️</td>
+                    </tr>
+                `;
+            });
+        }
+
+        // এডিট শুরু করার ফাংশন
+        const startEditing = (index) => {
+            editingIndex = index;
+            const data = JSON.parse(localStorage.getItem('attendance')) || [];
+            const record = data[index];
+
+            // ফর্ম পপুলেট করুন
+            document.getElementById('employeeSelect').value = record.employee;
+            document.getElementById('selectedDate').value = record.date;
+            document.getElementById('overtimeHours').value = record.overtime;
+            
+            // বাটন টেক্সট পরিবর্তন করুন
+            document.querySelector('[onclick="markAttendance(\'present\')"]').innerHTML = 'Update ✅';
+            document.querySelector('[onclick="markAttendance(\'absent\')"]').innerHTML = 'Update ❌';
+            document.querySelector('[onclick="recordOvertime()"]').innerHTML = 'Update ⏰';
+        }
+
+        // হালনাগাদ মার্কঅ্যাটেনডেন্স ফাংশন
+        const markAttendance = (status) => {
+            const employee = document.getElementById('employeeSelect').value;
+            const date = document.getElementById('selectedDate').value;
+
+            if(!employee || !date) {
+                alert("দয়া করে কর্মী এবং তারিখ নির্বাচন করুন!");
+                return;
+            }
+
+            const attendanceData = JSON.parse(localStorage.getItem('attendance')) || [];
+            
+            if(editingIndex > -1) {
+                // এডিট মোড
+                attendanceData[editingIndex] = {
+                    ...attendanceData[editingIndex],
+                    employee,
+                    date,
+                    status
+                };
+            } else {
+                // নতুন এন্ট্রি
+                attendanceData.push({
+                    employee,
+                    date,
+                    status,
+                    overtime: 0
+                });
+            }
+
+            localStorage.setItem('attendance', JSON.stringify(attendanceData));
+            resetForm();
+            updateTable();
+        }
+
+        // হালনাগাদ রেকর্ড ওভারটাইম ফাংশন
+        const recordOvertime = () => {
+            const employee = document.getElementById('employeeSelect').value;
+            const date = document.getElementById('selectedDate').value;
+            const hours = document.getElementById('overtimeHours').value;
+
+            if(!employee || !date || !hours) {
+                alert("দয়া করে সব ফিল্ড পূরণ করুন!");
+                return;
+            }
+
+            const attendanceData = JSON.parse(localStorage.getItem('attendance')) || [];
+            const index = attendanceData.findIndex(rec => 
+                rec.employee === employee && rec.date === date
+            );
+
+            if(index === -1) {
+                alert("প্রথমে উপস্থিতি রেকর্ড করুন!");
+                return;
+            }
+
+            attendanceData[index].overtime = parseInt(hours);
+            localStorage.setItem('attendance', JSON.stringify(attendanceData));
+            resetForm();
+            updateTable();
+        }
+
+        // ডিলিট ফাংশন
+        const deleteRecord = (index) => {
+            if(confirm("আপনি কি এই রেকর্ডটি মুছতে চান?")) {
+                const attendanceData = JSON.parse(localStorage.getItem('attendance')) || [];
+                attendanceData.splice(index, 1);
+                localStorage.setItem('attendance', JSON.stringify(attendanceData));
+                updateTable();
+            }
+        }
+
+        // ফর্ম রিসেট ফাংশন
+        const resetForm = () => {
+            editingIndex = -1;
+            document.getElementById('overtimeHours').value = '';
+            document.querySelector('[onclick="markAttendance(\'present\')"]').innerHTML = 'Present ✅';
+            document.querySelector('[onclick="markAttendance(\'absent\')"]').innerHTML = 'Absent ❌';
+            document.querySelector('[onclick="recordOvertime()"]').innerHTML = 'Save';
+        }
+
+        // বাকি ফাংশন অপরিবর্তিত
+    </script>
+</body>
+</html>
