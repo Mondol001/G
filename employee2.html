@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>কর্মীর মাসিক হাজিরা ও ওভারটাইম এন্ট্রি</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background: #f7f7f7;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1000px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    h1, h2 {
+      text-align: center;
+      color: #333;
+    }
+    .weekend {
+      background-color: #f8f9fa;
+    }
+    .error {
+      color: #dc3545;
+      font-size: 0.9em;
+      margin-top: 5px;
+    }
+    @media print {
+      button, .daily-entry, .print-hide {
+        display: none !important;
+      }
+      .container {
+        box-shadow: none;
+        padding: 0;
+        margin: 0;
+      }
+      .table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .table th, .table td {
+        border: 1px solid #000 !important;
+      }
+      .print-show {
+        display: block !important;
+        margin-bottom: 20px;
+      }
+      .employee-info input,
+      .month-year-selection select {
+        border: none !important;
+        background: transparent !important;
+        padding: 0 !important;
+      }
+    }
+    .print-show {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 class="mb-4 print-hide">কর্মীর মাসিক হাজিরা ও ওভারটাইম এন্ট্রি</h1>
+    
+    <!-- প্রিন্ট হেডার -->
+    <div class="print-show">
+      <h2>কর্মীর মাসিক হাজিরা রিপোর্ট</h2>
+      <p>নাম: <span id="printName"></span></p>
+      <p>আইডি: <span id="printId"></span></p>
+      <p>মাস: <span id="printMonth"></span>, বছর: <span id="printYear"></span></p>
+    </div>
+
+    <!-- কর্মীর নাম ও আইডি -->
+    <div class="employee-info mb-4 print-hide">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label for="employeeName" class="form-label">কর্মীর নাম:</label>
+          <input type="text" id="employeeName" class="form-control" value="Md. Touhidul islam" readonly>
+        </div>
+        <div class="col-md-6">
+          <label for="employeeId" class="form-label">কর্মী আইডি:</label>
+          <input type="text" id="employeeId" class="form-control" value="52152" readonly>
+        </div>
+      </div>
+    </div>
+    
+    <!-- মাস ও বছর নির্বাচন -->
+    <div class="month-year-selection mb-4 print-hide">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label for="monthSelect" class="form-label">মাস:</label>
+          <select id="monthSelect" class="form-select">
+            <option value="0">জানুয়ারী</option>
+            <option value="1">ফেব্রুয়ারী</option>
+            <option value="2">মার্চ</option>
+            <option value="3">এপ্রিল</option>
+            <option value="4">মে</option>
+            <option value="5">জুন</option>
+            <option value="6">জুলাই</option>
+            <option value="7">আগস্ট</option>
+            <option value="8">সেপ্টেম্বর</option>
+            <option value="9">অক্টোবর</option>
+            <option value="10">নভেম্বর</option>
+            <option value="11">ডিসেম্বর</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label for="yearSelect" class="form-label">বছর:</label>
+          <select id="yearSelect" class="form-select"></select>
+        </div>
+        <div class="col-md-4 d-flex align-items-end">
+          <button id="loadMonth" class="btn btn-primary w-100">মাস লোড করুন</button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- দৈনিক এন্ট্রি ফর্ম -->
+    <div class="daily-entry mb-4 print-hide">
+      <h2 class="mb-3">আজকের এন্ট্রি</h2>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label for="entryDate" class="form-label">তারিখ:</label>
+          <input type="date" id="entryDate" class="form-control">
+          <span id="dateError" class="error"></span>
+        </div>
+        <div class="col-md-4">
+          <label for="attendanceStatus" class="form-label">হাজিরা:</label>
+          <select id="attendanceStatus" class="form-select">
+            <option value="">নির্বাচন করুন</option>
+            <option value="present">উপস্থিত</option>
+            <option value="absent">অনুপস্থিত</option>
+          </select>
+          <span id="attendanceError" class="error"></span>
+        </div>
+        <div class="col-md-4">
+          <label for="overtimeInput" class="form-label">ওভারটাইম (ঘণ্টা):</label>
+          <input type="number" id="overtimeInput" class="form-control" min="0" step="0.5" placeholder="0">
+        </div>
+        <div class="col-12">
+          <button id="saveEntry" class="btn btn-primary w-100">এন্ট্রি সংরক্ষণ করুন</button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- মাসিক ডাটা টেবিল -->
+    <div class="monthly-table">
+      <h2 class="mb-3 print-hide">মাসিক এন্ট্রি</h2>
+      <div class="table-responsive">
+        <table id="attendanceTable" class="table table-bordered">
+          <thead class="table-light">
+            <tr>
+              <th>তারিখ</th>
+              <th>হাজিরা</th>
+              <th>ওভারটাইম</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      
+      <div class="d-flex justify-content-center gap-2 mt-3 print-hide">
+        <button id="calculateBtn" class="btn btn-success">হিসাব করুন</button>
+        <button id="printBtn" class="btn btn-primary">প্রিন্ট করুন</button>
+      </div>
+      <div id="result" class="mt-3 p-3 bg-light rounded"></div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // DOM উপাদান
+    const employeeNameInput = document.getElementById('employeeName');
+    const employeeIdInput = document.getElementById('employeeId');
+    const monthSelect = document.getElementById('monthSelect');
+    const yearSelect = document.getElementById('yearSelect');
+    const loadMonthBtn = document.getElementById('loadMonth');
+    const entryDateInput = document.getElementById('entryDate');
+    const attendanceStatusSelect = document.getElementById('attendanceStatus');
+    const overtimeInput = document.getElementById('overtimeInput');
+    const saveEntryBtn = document.getElementById('saveEntry');
+    const attendanceTableBody = document.querySelector('#attendanceTable tbody');
+    const calculateBtn = document.getElementById('calculateBtn');
+    const printBtn = document.getElementById('printBtn');
+    const resultDiv = document.getElementById('result');
+
+    // বছর সিলেক্ট পূরণ
+    const currentYear = new Date().getFullYear();
+    for (let y = currentYear - 5; y <= currentYear + 5; y++) {
+      const option = document.createElement('option');
+      option.value = y;
+      option.textContent = y;
+      yearSelect.appendChild(option);
+    }
+    yearSelect.value = currentYear;
+
+    // লোকাল স্টোরেজ ব্যবস্থাপনা
+    function getStorageKey() {
+      return `attendance-${employeeIdInput.value}-${yearSelect.value}-${monthSelect.value}`;
+    }
+
+    // তারিখ সীমাবদ্ধতা সেট করুন
+    function setDateLimitations() {
+      const selectedYear = yearSelect.value;
+      const selectedMonth = monthSelect.value;
+      const firstDay = new Date(selectedYear, selectedMonth, 1);
+      const lastDay = new Date(selectedYear, parseInt(selectedMonth) + 1, 0);
+      entryDateInput.min = firstDay.toISOString().split('T')[0];
+      entryDateInput.max = lastDay.toISOString().split('T')[0];
+    }
+
+    // সাপ্তাহিক ছুটি চেক
+    function isWeekend(year, month, day) {
+      const date = new Date(year, month, day);
+      return date.getDay() === 0 || date.getDay() === 6;
+    }
+
+    // টেবিল রেন্ডার
+    function renderTable() {
+      attendanceTableBody.innerHTML = '';
+      const storageKey = getStorageKey();
+      const savedData = JSON.parse(localStorage.getItem(storageKey)) || {};
+      const daysInMonth = new Date(yearSelect.value, parseInt(monthSelect.value) + 1, 0).getDate();
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        const tr = document.createElement('tr');
+        if (isWeekend(yearSelect.value, monthSelect.value, day)) {
+          tr.classList.add('weekend');
+        }
+
+        const tdDate = document.createElement('td');
+        tdDate.textContent = day;
+        tr.appendChild(tdDate);
+
+        const tdAttendance = document.createElement('td');
+        tdAttendance.textContent = savedData[day]?.attendance === 'present' ? 'উপস্থিত' : (savedData[day] ? 'অনুপস্থিত' : '');
+        tr.appendChild(tdAttendance);
+
+        const tdOvertime = document.createElement('td');
+        tdOvertime.textContent = savedData[day]?.overtime || '0';
+        tr.appendChild(tdOvertime);
+
+        attendanceTableBody.appendChild(tr);
+      }
+    }
+
+    // ফর্ম ভ্যালিডেশন
+    function validateForm() {
+      let isValid = true;
+      
+      document.querySelectorAll('.error').forEach(e => e.textContent = '');
+
+      if (!entryDateInput.value) {
+        document.getElementById('dateError').textContent = 'তারিখ আবশ্যক';
+        isValid = false;
+      }
+
+      if (!attendanceStatusSelect.value) {
+        document.getElementById('attendanceError').textContent = 'হাজিরা নির্বাচন করুন';
+        isValid = false;
+      }
+
+      return isValid;
+    }
+
+    // এন্ট্রি সেভ
+    function saveEntry() {
+      if (!validateForm()) return;
+
+      const storageKey = getStorageKey();
+      const savedData = JSON.parse(localStorage.getItem(storageKey)) || {};
+      const day = new Date(entryDateInput.value).getDate();
+
+      savedData[day] = {
+        attendance: attendanceStatusSelect.value,
+        overtime: overtimeInput.value || '0'
+      };
+
+      localStorage.setItem(storageKey, JSON.stringify(savedData));
+      renderTable();
+      resetForm();
+    }
+
+    // ফর্ম রিসেট
+    function resetForm() {
+      entryDateInput.value = '';
+      attendanceStatusSelect.value = '';
+      overtimeInput.value = '';
+    }
+
+    // হিসাব করুন
+    function calculate() {
+      const storageKey = getStorageKey();
+      const savedData = JSON.parse(localStorage.getItem(storageKey)) || {};
+      let presentDays = 0;
+      let totalOvertime = 0;
+
+      Object.values(savedData).forEach(entry => {
+        if (entry.attendance === 'present') presentDays++;
+        totalOvertime += parseFloat(entry.overtime) || 0;
+      });
+
+      resultDiv.innerHTML = `
+        <h3>ফলাফল:</h3>
+        <p>মোট উপস্থিত দিন: ${presentDays}</p>
+        <p>মোট ওভারটাইম: ${totalOvertime.toFixed(1)} ঘণ্টা</p>
+      `;
+    }
+
+    // প্রিন্ট ফাংশন
+    function printTable() {
+      // প্রিন্টের জন্য তথ্য সেট করুন
+      document.getElementById('printName').textContent = employeeNameInput.value;
+      document.getElementById('printId').textContent = employeeIdInput.value;
+      document.getElementById('printMonth').textContent = monthSelect.options[monthSelect.selectedIndex].text;
+      document.getElementById('printYear').textContent = yearSelect.value;
+
+      // প্রিন্ট ভিউ সক্রিয় করুন
+      window.print();
+    }
+
+    // ইভেন্ট লিসেনার
+    loadMonthBtn.addEventListener('click', () => {
+      setDateLimitations();
+      renderTable();
+    });
+
+    saveEntryBtn.addEventListener('click', saveEntry);
+    calculateBtn.addEventListener('click', calculate);
+    printBtn.addEventListener('click', printTable);
+
+    // প্রারম্ভিক সেটআপ
+    monthSelect.value = new Date().getMonth();
+    setDateLimitations();
+    renderTable();
+  </script>
+</body>
+</html>
