@@ -63,7 +63,7 @@
           document.getElementById('email').value,
           document.getElementById('password').value
         );
-        window.location.href = 'dashboard.html';
+        window.location.href = 'employee1.html';
       } catch (error) {
         document.getElementById('authError').textContent = error.message;
       }
@@ -73,7 +73,7 @@
       const provider = new firebase.auth.GoogleAuthProvider();
       try {
         await auth.signInWithPopup(provider);
-        window.location.href = 'dashboard.html';
+        window.location.href = 'employee1.html';
       } catch (error) {
         document.getElementById('authError').textContent = error.message;
       }
