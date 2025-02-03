@@ -1,0 +1,28 @@
+// Generate payroll report
+function generateReport() {
+    const searchValue = document.getElementById("searchReport").value;
+    const attendanceData = JSON.parse(localStorage.getItem("attendance")) || [];
+    const reportDiv = document.getElementById("reportResult");
+
+    reportDiv.innerHTML = "";
+
+    const results = attendanceData.filter(record => 
+        record.employeeName.toLowerCase().includes(searchValue.toLowerCase())
+    );
+
+    if (results.length === 0) {
+        reportDiv.innerHTML = "<p>No matching records found.</p>";
+        return;
+    }
+
+    let totalOvertime = 0;
+
+    results.forEach(record => {
+        totalOvertime += parseInt(record.overtime);
+        reportDiv.innerHTML += `
+            <p>${record.date} - ${record.employeeName} - ${record.status} - Overtime: ${record.overtime} hours</p>
+        `;
+    });
+
+    reportDiv.innerHTML += `<h3>Total Overtime: ${totalOvertime} hours</h3>`;
+}
