@@ -4,11 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>কর্মীর মাসিক হাজিরা ও ওভারটাইম এন্ট্রি</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     body {
-      font-family: Arial, sans-serif;
       background: #f7f7f7;
-      margin: 20px;
+      padding: 20px;
     }
     .container {
       max-width: 1000px;
@@ -16,180 +17,162 @@
       background: #fff;
       padding: 20px;
       border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     }
     h1, h2 {
       text-align: center;
       color: #333;
     }
-    .employee-info,
-    .month-year-selection,
-    .daily-entry {
-      margin-bottom: 20px;
-      text-align: center;
-    }
-    .employee-info label,
-    .month-year-selection label,
-    .daily-entry label {
-      font-weight: bold;
-      margin-right: 5px;
-    }
-    .employee-info input,
-    .month-year-selection select,
-    .daily-entry input,
-    .daily-entry select {
-      padding: 5px;
-      font-size: 16px;
-      margin-right: 10px;
-    }
-    .employee-info input[readonly] {
-      background: #e9ecef;
-      border: 1px solid #ccc;
-    }
-    button {
-      padding: 8px 15px;
-      font-size: 16px;
-      cursor: pointer;
-      border: none;
-      border-radius: 4px;
-    }
-    button.primary {
-      background: #007bff;
-      color: #fff;
-    }
-    button.calculate {
-      background: #28a745;
-      color: #fff;
-    }
-    button.reset {
-      background: #dc3545;
-      color: #fff;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-    }
-    table th, table td {
-      border: 1px solid #ddd;
-      padding: 10px;
-      text-align: center;
-    }
-    table th {
-      background: #f2f2f2;
-    }
-    #result {
-      margin-top: 15px;
-      background: #e9ecef;
-      padding: 15px;
-      border-radius: 4px;
-    }
     .weekend {
-      background-color: #f3f3f3;
+      background-color: #f8f9fa;
     }
     .error {
       color: #dc3545;
       font-size: 0.9em;
       margin-top: 5px;
-      display: block;
-    }
-    @media (max-width: 768px) {
-      .container {
-        overflow-x: auto;
-      }
     }
     @media print {
-      button, .daily-entry, .month-year-selection, .employee-info {
+      button, .daily-entry, .print-hide {
         display: none !important;
       }
       .container {
         box-shadow: none;
         padding: 0;
+        margin: 0;
       }
+      .table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .table th, .table td {
+        border: 1px solid #000 !important;
+      }
+      .print-show {
+        display: block !important;
+        margin-bottom: 20px;
+      }
+      .employee-info input,
+      .month-year-selection select {
+        border: none !important;
+        background: transparent !important;
+        padding: 0 !important;
+      }
+    }
+    .print-show {
+      display: none;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>কর্মীর মাসিক হাজিরা ও ওভারটাইম এন্ট্রি</h1>
+    <h1 class="mb-4 print-hide">কর্মীর মাসিক হাজিরা ও ওভারটাইম এন্ট্রি</h1>
     
+    <!-- প্রিন্ট হেডার -->
+    <div class="print-show">
+      <h2>কর্মীর মাসিক হাজিরা রিপোর্ট</h2>
+      <p>নাম: <span id="printName"></span></p>
+      <p>আইডি: <span id="printId"></span></p>
+      <p>মাস: <span id="printMonth"></span>, বছর: <span id="printYear"></span></p>
+    </div>
+
     <!-- কর্মীর নাম ও আইডি -->
-    <div class="employee-info">
-      <label for="employeeName">কর্মীর নাম:</label>
-      <input type="text" id="employeeName" value="রবিন কুমার" readonly>
-      <label for="employeeId">কর্মী আইডি:</label>
-      <input type="text" id="employeeId" value="EMP001" readonly>
+    <div class="employee-info mb-4 print-hide">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label for="employeeName" class="form-label">কর্মীর নাম:</label>
+          <input type="text" id="employeeName" class="form-control" value="রবিন কুমার" readonly>
+        </div>
+        <div class="col-md-6">
+          <label for="employeeId" class="form-label">কর্মী আইডি:</label>
+          <input type="text" id="employeeId" class="form-control" value="EMP001" readonly>
+        </div>
+      </div>
     </div>
     
     <!-- মাস ও বছর নির্বাচন -->
-    <div class="month-year-selection">
-      <label for="monthSelect">মাস:</label>
-      <select id="monthSelect">
-        <option value="0">জানুয়ারী</option>
-        <option value="1">ফেব্রুয়ারী</option>
-        <option value="2">মার্চ</option>
-        <option value="3">এপ্রিল</option>
-        <option value="4">মে</option>
-        <option value="5">জুন</option>
-        <option value="6">জুলাই</option>
-        <option value="7">আগস্ট</option>
-        <option value="8">সেপ্টেম্বর</option>
-        <option value="9">অক্টোবর</option>
-        <option value="10">নভেম্বর</option>
-        <option value="11">ডিসেম্বর</option>
-      </select>
-      
-      <label for="yearSelect">বছর:</label>
-      <select id="yearSelect"></select>
-      
-      <button id="loadMonth" class="primary">মাস লোড করুন</button>
+    <div class="month-year-selection mb-4 print-hide">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label for="monthSelect" class="form-label">মাস:</label>
+          <select id="monthSelect" class="form-select">
+            <option value="0">জানুয়ারী</option>
+            <option value="1">ফেব্রুয়ারী</option>
+            <option value="2">মার্চ</option>
+            <option value="3">এপ্রিল</option>
+            <option value="4">মে</option>
+            <option value="5">জুন</option>
+            <option value="6">জুলাই</option>
+            <option value="7">আগস্ট</option>
+            <option value="8">সেপ্টেম্বর</option>
+            <option value="9">অক্টোবর</option>
+            <option value="10">নভেম্বর</option>
+            <option value="11">ডিসেম্বর</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label for="yearSelect" class="form-label">বছর:</label>
+          <select id="yearSelect" class="form-select"></select>
+        </div>
+        <div class="col-md-4 d-flex align-items-end">
+          <button id="loadMonth" class="btn btn-primary w-100">মাস লোড করুন</button>
+        </div>
+      </div>
     </div>
     
     <!-- দৈনিক এন্ট্রি ফর্ম -->
-    <div class="daily-entry">
-      <h2>আজকের এন্ট্রি</h2>
-      <label for="entryDate">তারিখ:</label>
-      <input type="date" id="entryDate">
-      <span id="dateError" class="error"></span>
-      
-      <label for="attendanceStatus">হাজিরা:</label>
-      <select id="attendanceStatus">
-        <option value="">নির্বাচন করুন</option>
-        <option value="present">উপস্থিত</option>
-        <option value="absent">অনুপস্থিত</option>
-      </select>
-      <span id="attendanceError" class="error"></span>
-      
-      <label for="overtimeInput">ওভারটাইম (ঘণ্টা):</label>
-      <input type="number" id="overtimeInput" min="0" step="0.5" placeholder="0">
-      
-      <button id="saveEntry" class="primary">এন্ট্রি সংরক্ষণ করুন</button>
+    <div class="daily-entry mb-4 print-hide">
+      <h2 class="mb-3">আজকের এন্ট্রি</h2>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label for="entryDate" class="form-label">তারিখ:</label>
+          <input type="date" id="entryDate" class="form-control">
+          <span id="dateError" class="error"></span>
+        </div>
+        <div class="col-md-4">
+          <label for="attendanceStatus" class="form-label">হাজিরা:</label>
+          <select id="attendanceStatus" class="form-select">
+            <option value="">নির্বাচন করুন</option>
+            <option value="present">উপস্থিত</option>
+            <option value="absent">অনুপস্থিত</option>
+          </select>
+          <span id="attendanceError" class="error"></span>
+        </div>
+        <div class="col-md-4">
+          <label for="overtimeInput" class="form-label">ওভারটাইম (ঘণ্টা):</label>
+          <input type="number" id="overtimeInput" class="form-control" min="0" step="0.5" placeholder="0">
+        </div>
+        <div class="col-12">
+          <button id="saveEntry" class="btn btn-primary w-100">এন্ট্রি সংরক্ষণ করুন</button>
+        </div>
+      </div>
     </div>
     
     <!-- মাসিক ডাটা টেবিল -->
     <div class="monthly-table">
-      <h2>মাসিক এন্ট্রি</h2>
-      <table id="attendanceTable">
-        <thead>
-          <tr>
-            <th>তারিখ</th>
-            <th>হাজিরা</th>
-            <th>ওভারটাইম</th>
-            <th>কার্যক্রম</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-      
-      <div style="text-align: center; margin-top: 10px;">
-        <button id="calculateBtn" class="calculate">হিসাব করুন</button>
-        <button id="resetBtn" class="reset">রিসেট করুন</button>
-        <button id="printBtn" class="primary">প্রিন্ট করুন</button>
+      <h2 class="mb-3 print-hide">মাসিক এন্ট্রি</h2>
+      <div class="table-responsive">
+        <table id="attendanceTable" class="table table-bordered">
+          <thead class="table-light">
+            <tr>
+              <th>তারিখ</th>
+              <th>হাজিরা</th>
+              <th>ওভারটাইম</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
       </div>
-      <div id="result"></div>
+      
+      <div class="d-flex justify-content-center gap-2 mt-3 print-hide">
+        <button id="calculateBtn" class="btn btn-success">হিসাব করুন</button>
+        <button id="printBtn" class="btn btn-primary">প্রিন্ট করুন</button>
+      </div>
+      <div id="result" class="mt-3 p-3 bg-light rounded"></div>
     </div>
   </div>
 
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     // DOM উপাদান
     const employeeNameInput = document.getElementById('employeeName');
@@ -203,7 +186,6 @@
     const saveEntryBtn = document.getElementById('saveEntry');
     const attendanceTableBody = document.querySelector('#attendanceTable tbody');
     const calculateBtn = document.getElementById('calculateBtn');
-    const resetBtn = document.getElementById('resetBtn');
     const printBtn = document.getElementById('printBtn');
     const resultDiv = document.getElementById('result');
 
@@ -263,45 +245,8 @@
         tdOvertime.textContent = savedData[day]?.overtime || '0';
         tr.appendChild(tdOvertime);
 
-        const tdActions = document.createElement('td');
-        const editBtn = document.createElement('button');
-        editBtn.textContent = 'এডিট';
-        editBtn.className = 'primary';
-        editBtn.onclick = () => editEntry(day);
-        
-        const deleteBtn = document.createElement('button');
-        deleteBtn.textContent = 'মুছুন';
-        deleteBtn.className = 'reset';
-        deleteBtn.onclick = () => deleteEntry(day);
-
-        tdActions.append(editBtn, deleteBtn);
-        tr.appendChild(tdActions);
-
         attendanceTableBody.appendChild(tr);
       }
-    }
-
-    // এন্ট্রি এডিট
-    function editEntry(day) {
-      const storageKey = getStorageKey();
-      const savedData = JSON.parse(localStorage.getItem(storageKey)) || {};
-      const entry = savedData[day];
-      
-      const date = new Date(yearSelect.value, monthSelect.value, day);
-      entryDateInput.value = date.toISOString().split('T')[0];
-      attendanceStatusSelect.value = entry.attendance;
-      overtimeInput.value = entry.overtime;
-    }
-
-    // এন্ট্রি ডিলিট
-    function deleteEntry(day) {
-      if (!confirm('আপনি কি এই এন্ট্রি মুছতে চান?')) return;
-      
-      const storageKey = getStorageKey();
-      const savedData = JSON.parse(localStorage.getItem(storageKey)) || {};
-      delete savedData[day];
-      localStorage.setItem(storageKey, JSON.stringify(savedData));
-      renderTable();
     }
 
     // ফর্ম ভ্যালিডেশন
@@ -367,12 +312,16 @@
       `;
     }
 
-    // রিসেট মাসিক ডাটা
-    function resetData() {
-      if (!confirm('সমস্ত ডাটা মুছে ফেলতে চান?')) return;
-      localStorage.removeItem(getStorageKey());
-      renderTable();
-      resultDiv.innerHTML = '';
+    // প্রিন্ট ফাংশন
+    function printTable() {
+      // প্রিন্টের জন্য তথ্য সেট করুন
+      document.getElementById('printName').textContent = employeeNameInput.value;
+      document.getElementById('printId').textContent = employeeIdInput.value;
+      document.getElementById('printMonth').textContent = monthSelect.options[monthSelect.selectedIndex].text;
+      document.getElementById('printYear').textContent = yearSelect.value;
+
+      // প্রিন্ট ভিউ সক্রিয় করুন
+      window.print();
     }
 
     // ইভেন্ট লিসেনার
@@ -383,8 +332,7 @@
 
     saveEntryBtn.addEventListener('click', saveEntry);
     calculateBtn.addEventListener('click', calculate);
-    resetBtn.addEventListener('click', resetData);
-    printBtn.addEventListener('click', () => window.print());
+    printBtn.addEventListener('click', printTable);
 
     // প্রারম্ভিক সেটআপ
     monthSelect.value = new Date().getMonth();
