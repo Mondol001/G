@@ -17,10 +17,12 @@
       --primary-color: #2c3e50;
       --secondary-color: #3498db;
     }
+
     body {
       background: #f8f9fa;
       padding: 20px;
     }
+
     .container {
       max-width: 1200px;
       margin: auto;
@@ -29,42 +31,51 @@
       border-radius: 15px;
       box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
     }
+
     .header-section {
       border-bottom: 3px solid var(--primary-color);
       padding-bottom: 20px;
       margin-bottom: 30px;
     }
+
     .employee-selector {
       background: #f8f9fa;
       border-radius: 10px;
       padding: 20px;
       margin-bottom: 30px;
     }
+
     .form-control:focus {
       border-color: var(--secondary-color);
       box-shadow: 0 0 0 0.25rem rgba(52, 152, 219, 0.25);
     }
+
     .btn-primary {
       background-color: var(--secondary-color);
       border: none;
       padding: 10px 25px;
       transition: all 0.3s;
     }
+
     .btn-primary:hover {
       background-color: #2980b9;
       transform: translateY(-2px);
     }
+
     .table-hover tbody tr:hover {
       background-color: rgba(52, 152, 219, 0.1);
     }
+
     .badge {
       font-size: 0.9em;
       padding: 8px 12px;
     }
+
     @media print {
       .no-print {
         display: none !important;
       }
+      
       .print-header {
         display: block !important;
         text-align: center;
@@ -158,9 +169,8 @@
       <div class="row g-3">
         <div class="col-md-4">
           <label for="entryDate" class="form-label">তারিখ:</label>
-          <!-- বর্তমান তারিখকে ডিফল্ট হিসেবে সেট করা হয়েছে -->
-          <input type="date" id="entryDate" class="form-control" value="<?= date('Y-m-d') ?>">
-          <span id="dateError" class="error text-danger"></span>
+          <input type="date" id="entryDate" class="form-control">
+          <span id="dateError" class="error"></span>
         </div>
         <div class="col-md-4">
           <label for="attendanceStatus" class="form-label">হাজিরা:</label>
@@ -169,7 +179,7 @@
             <option value="present">উপস্থিত</option>
             <option value="absent">অনুপস্থিত</option>
           </select>
-          <span id="attendanceError" class="error text-danger"></span>
+          <span id="attendanceError" class="error"></span>
         </div>
         <div class="col-md-4">
           <label for="overtimeInput" class="form-label">ওভারটাইম (ঘণ্টা):</label>
@@ -206,12 +216,12 @@
   </div>
 
   <!-- নতুন কর্মী মডাল -->
-  <div class="modal fade" id="newEmployeeModal" tabindex="-1" aria-labelledby="newEmployeeModalLabel" aria-hidden="true">
+  <div class="modal fade" id="newEmployeeModal" tabindex="-1">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="newEmployeeModalLabel"><i class="fas fa-user-plus"></i> নতুন কর্মী যোগ করুন</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="বন্ধ করুন"></button>
+          <h5 class="modal-title"><i class="fas fa-user-plus"></i> নতুন কর্মী যোগ করুন</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
           <form id="newEmployeeForm">
@@ -227,7 +237,6 @@
               <label class="form-label">জমার তারিখ</label>
               <input type="date" class="form-control" id="newEmployeeJoinDate" required>
             </div>
-            <div id="employeeFeedback" class="text-success"></div>
           </form>
         </div>
         <div class="modal-footer">
@@ -238,7 +247,7 @@
     </div>
   </div>
 
-  <!-- Bootstrap JS Bundle (includes Popper) -->
+  <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     // Firebase কনফিগারেশন
@@ -256,9 +265,9 @@
     // Firebase ইনিশিয়ালাইজেশন
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    const auth = firebase.auth();
+const auth = firebase.auth();
 
-    // DOM উপাদানসমূহ
+    // DOM উপাদান
     const employeeSelect = document.getElementById('employeeSelect');
     const selectedEmployeeName = document.getElementById('selectedEmployeeName');
     const selectedEmployeeId = document.getElementById('selectedEmployeeId');
@@ -275,9 +284,6 @@
     const printBtn = document.getElementById('printBtn');
     const resultDiv = document.getElementById('result');
 
-    // ডিফল্ট তারিখ (আজকের তারিখ) ইনপুটে সেট করা
-    entryDateInput.value = new Date().toISOString().split('T')[0];
-
     // বছর সিলেক্ট পূরণ
     const currentYear = new Date().getFullYear();
     for (let y = currentYear - 5; y <= currentYear + 5; y++) {
@@ -293,6 +299,7 @@
       try {
         const snapshot = await db.collection('employees').get();
         employeeSelect.innerHTML = '<option value="">কর্মী নির্বাচন করুন...</option>';
+        
         snapshot.forEach(doc => {
           const employee = doc.data();
           const option = document.createElement('option');
@@ -307,180 +314,122 @@
 
     // কর্মী নির্বাচন ইভেন্ট
     employeeSelect.addEventListener('change', async () => {
-      if (employeeSelect.value) {
-        const doc = await db.collection('employees').doc(employeeSelect.value).get();
-        if (doc.exists) {
-          const data = doc.data();
-          selectedEmployeeName.textContent = data.name;
-          selectedEmployeeId.textContent = `আইডি: ${data.employeeId}`;
-        }
-      } else {
-        selectedEmployeeName.textContent = 'নাম: ';
-        selectedEmployeeId.textContent = '';
-      }
-    });
+  if (employeeSelect.value) {
+    const doc = await db.collection('employees').doc(employeeSelect.value).get();
+    if (doc.exists) {
+      const data = doc.data();
+      selectedEmployeeName.textContent = data.name;
+      selectedEmployeeId.textContent = `আইডি: ${data.employeeId}`;
+      // Remove non-existent element references
+    }
+  }
+});
 
-    // নির্বাচন বাতিল করার বাটন
     clearSelectionBtn.addEventListener('click', () => {
-      employeeSelect.value = '';
-      selectedEmployeeName.textContent = 'নাম: ';
-      selectedEmployeeId.textContent = '';
-    });
+  employeeSelect.value = '';
+  selectedEmployeeName.textContent = 'নাম: ';
+  selectedEmployeeId.textContent = '';
+});
 
-    // মাস লোড করার ফাংশন
+
     loadMonthBtn.addEventListener('click', async () => {
-      if (!employeeSelect.value) {
-        alert('দয়া করে প্রথমে কর্মী নির্বাচন করুন');
-        return;
-      }
-      const month = parseInt(monthSelect.value);
-      const year = parseInt(yearSelect.value);
-      // নির্বাচিত মাসের প্রথম ও শেষ দিন নির্ধারণ
-      const startDate = new Date(year, month, 1);
-      // মাসের শেষ দিন: নতুন মাসের ০তম দিন
-      const endDate = new Date(year, month + 1, 0);
-      
-      try {
-        const snapshot = await db.collection('employees')
-          .doc(employeeSelect.value)
-          .collection('attendance')
-          .where('date', '>=', startDate)
-          .where('date', '<=', endDate)
-          .get();
+  if (!employeeSelect.value) return alert('কর্মী নির্বাচন করুন');
+  
+  const month = parseInt(monthSelect.value);
+  const year = parseInt(yearSelect.value);
+  
+  const startDate = new Date(year, month, 1);
+  const endDate = new Date(year, month + 1, 0);
+  
+  const snapshot = await db.collection('employees')
+    .doc(employeeSelect.value)
+    .collection('attendance')
+    .where('date', '>=', startDate)
+    .where('date', '<=', endDate)
+    .get();
 
-        attendanceTableBody.innerHTML = '';
-        if (snapshot.empty) {
-          attendanceTableBody.innerHTML = `<tr><td colspan="3" class="text-center">কোন এন্ট্রি নেই</td></tr>`;
-        }
-        snapshot.forEach(doc => {
-          const data = doc.data();
-          const entryDate = data.date && data.date.toDate ? data.date.toDate() : new Date(data.date);
-          const row = `
-            <tr>
-              <td>${entryDate.toLocaleDateString('bn-BD')}</td>
-              <td>${data.status === 'present' ? 'উপস্থিত' : 'অনুপস্থিত'}</td>
-              <td>${data.overtime}</td>
-            </tr>
-          `;
-          attendanceTableBody.innerHTML += row;
-        });
-      } catch (error) {
-        console.error('মাস লোড করতে ত্রুটি:', error);
-      }
-    });
+  attendanceTableBody.innerHTML = '';
+  snapshot.forEach(doc => {
+    const data = doc.data();
+    const row = `
+      <tr>
+        <td>${data.date.toDate().toLocaleDateString('bn-BD')}</td>
+        <td>${data.status === 'present' ? 'উপস্থিত' : 'অনুপস্থিত'}</td>
+        <td>${data.overtime}</td>
+      </tr>
+    `;
+    attendanceTableBody.innerHTML += row;
+  });
+});
     
     // নতুন কর্মী ফর্ম সাবমিশন
     document.getElementById('newEmployeeForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       
       const newEmployee = {
-        name: document.getElementById('newEmployeeName').value.trim(),
-        employeeId: document.getElementById('newEmployeeId').value.trim(),
-        joinDate: new Date(document.getElementById('newEmployeeJoinDate').value),
+        name: document.getElementById('newEmployeeName').value,
+        employeeId: document.getElementById('newEmployeeId').value,
+        joinDate: document.getElementById('newEmployeeJoinDate').value,
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
       };
 
       try {
         await db.collection('employees').add(newEmployee);
-        // কর্মী যোগ হওয়ার পরে ফর্ম রিসেট এবং তালিকা পুনরায় লোড করা
-        document.getElementById('newEmployeeForm').reset();
+        $('#newEmployeeModal').modal('hide');
         await loadEmployees();
-        // মোডাল বন্ধ করার জন্য বুটস্ট্র্যাপ ৫ এর Modal instance ব্যবহার করা
-        const newEmployeeModalEl = document.getElementById('newEmployeeModal');
-        const modalInstance = bootstrap.Modal.getInstance(newEmployeeModalEl);
-        if(modalInstance) {
-          modalInstance.hide();
-        }
-        // সফলতা বার্তা দেখানো
-        alert('নতুন কর্মী সফলভাবে যোগ করা হয়েছে!');
+        document.getElementById('newEmployeeForm').reset();
       } catch (error) {
         console.error('কর্মী সংরক্ষণে ত্রুটি:', error);
-        alert('কর্মী সংরক্ষণে ত্রুটি হয়েছে, আবার চেষ্টা করুন।');
       }
     });
+saveEntryBtn.addEventListener('click', async () => {
+  if (!employeeSelect.value) return alert('কর্মী নির্বাচন করুন');
+  
+  const entryData = {
+    date: new Date(entryDateInput.value),
+    status: attendanceStatusSelect.value,
+    overtime: parseFloat(overtimeInput.value) || 0,
+    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+  };
 
-    // দৈনিক এন্ট্রি সংরক্ষণ
-    saveEntryBtn.addEventListener('click', async () => {
-      if (!employeeSelect.value) {
-        alert('কর্মী নির্বাচন করুন');
-        return;
-      }
-      // ইনপুট যাচাই: তারিখ ও হাজিরা অবশ্যই নির্বাচন করতে হবে
-      if (!entryDateInput.value) {
-        document.getElementById('dateError').textContent = 'তারিখ নির্বাচন করুন';
-        return;
-      } else {
-        document.getElementById('dateError').textContent = '';
-      }
-      if (!attendanceStatusSelect.value) {
-        document.getElementById('attendanceError').textContent = 'হাজিরা নির্বাচন করুন';
-        return;
-      } else {
-        document.getElementById('attendanceError').textContent = '';
-      }
-      
-      const entryData = {
-        date: new Date(entryDateInput.value),
-        status: attendanceStatusSelect.value,
-        overtime: parseFloat(overtimeInput.value) || 0,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-      };
+  await db.collection('employees')
+    .doc(employeeSelect.value)
+    .collection('attendance')
+    .add(entryData);
 
-      try {
-        await db.collection('employees')
-          .doc(employeeSelect.value)
-          .collection('attendance')
-          .add(entryData);
-        alert('এন্ট্রি সফলভাবে সংরক্ষিত হয়েছে!');
-        // এন্ট্রি সংরক্ষণের পরে, যদি মাস লোড করা থাকে, তাহলে টেবিল রিফ্রেশ করুন
-        if (monthSelect.value !== "" && yearSelect.value !== "") {
-          loadMonthBtn.click();
-        }
-        // ইনপুট ফিল্ড রিসেট (ওভারটাইম ফিল্ড)
-        overtimeInput.value = '';
-      } catch (error) {
-        console.error('এন্ট্রি সংরক্ষণে ত্রুটি:', error);
-        alert('এন্ট্রি সংরক্ষণে সমস্যা হয়েছে, আবার চেষ্টা করুন');
-      }
-    });
+  alert('এন্ট্রি সফলভাবে সংরক্ষিত হয়েছে!');
+});
 
-    // হিসাব করার ফাংশন (সকল এন্ট্রি থেকে)
     calculateBtn.addEventListener('click', async () => {
-      if (!employeeSelect.value) {
-        alert('কর্মী নির্বাচন করুন');
-        return;
-      }
-      try {
-        const snapshot = await db.collection('employees')
-          .doc(employeeSelect.value)
-          .collection('attendance')
-          .get();
+  const snapshot = await db.collection('employees')
+    .doc(employeeSelect.value)
+    .collection('attendance')
+    .get();
 
-        let totalPresent = 0;
-        let totalOvertime = 0;
-        
-        snapshot.forEach(doc => {
-          const data = doc.data();
-          if (data.status === 'present') totalPresent++;
-          totalOvertime += data.overtime;
-        });
+  let totalPresent = 0;
+  let totalOvertime = 0;
+  
+  snapshot.forEach(doc => {
+    const data = doc.data();
+    if (data.status === 'present') totalPresent++;
+    totalOvertime += data.overtime;
+  });
 
-        resultDiv.innerHTML = `
-          <h4>মোট উপস্থিতি: ${totalPresent} দিন</h4>
-          <h4>মোট ওভারটাইম: ${totalOvertime} ঘণ্টা</h4>
-        `;
-      } catch (error) {
-        console.error('হিসাব করতে ত্রুটি:', error);
-      }
-    });
-
-    // প্রিন্ট বাটন
+  resultDiv.innerHTML = `
+    <h4>মোট উপস্থিতি: ${totalPresent} দিন</h4>
+    <h4>মোট ওভারটাইম: ${totalOvertime} ঘণ্টা</h4>
+  `;
+});
     printBtn.addEventListener('click', () => {
-      window.print();
-    });
+  window.print();
+});
     
-    // প্রাথমিক লোড
+
+    // প্রারম্ভিক লোড
     loadEmployees();
+
+    // বাকি ফাংশনালিটি পূর্বের মতো থাকবে
+    // ...
   </script>
 </body>
 </html>
