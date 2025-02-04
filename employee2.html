@@ -6,6 +6,11 @@
   <title>কর্মীর মাসিক হাজিরা ও ওভারটাইম এন্ট্রি</title>
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Firebase SDK -->
+ <!-- login.html এবং employee1.html উভয়ে -->
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
   <style>
     body {
       background: #f7f7f7;
@@ -75,16 +80,16 @@
       <p>মাস: <span id="printMonth"></span>, বছর: <span id="printYear"></span></p>
     </div>
 
-    <!-- কর্মীর নাম ও আইডি -->
+    <!-- কর্মীর তথ্য -->
     <div class="employee-info mb-4 print-hide">
       <div class="row g-3">
         <div class="col-md-6">
           <label for="employeeName" class="form-label">কর্মীর নাম:</label>
-          <input type="text" id="employeeName" class="form-control" value="Md. Touhidul islam" readonly>
+          <input type="text" id="employeeName" class="form-control" value="alamin mondol" readonly>
         </div>
         <div class="col-md-6">
           <label for="employeeId" class="form-label">কর্মী আইডি:</label>
-          <input type="text" id="employeeId" class="form-control" value="52152" readonly>
+          <input type="text" id="employeeId" class="form-control" value="56502" readonly>
         </div>
       </div>
     </div>
@@ -174,8 +179,42 @@
   <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
   <script>
+    // Firebase কনফিগারেশন (আপনার মানগুলি প্রতিস্থাপন করুন)
+    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyD-WhTe1Kqx4IRaeg_w9s-diHKPE6i6uaE",
+  authDomain: "data-entry-app-3923a.firebaseapp.com",
+  databaseURL: "https://data-entry-app-3923a-default-rtdb.firebaseio.com",
+  projectId: "data-entry-app-3923a",
+  storageBucket: "data-entry-app-3923a.firebasestorage.app",
+  messagingSenderId: "638964410595",
+  appId: "1:638964410595:web:80c8ffa7fe8fc1a48cbdd6",
+  measurementId: "G-01NQ8H9KB7"
+};
+
+    // Firebase ইনিশিয়ালাইজেশন
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const auth = firebase.auth();
+
+// অথেন্টিকেশন স্টেট চেক
+auth.onAuthStateChanged((user) => {
+  if (!user) {
+    window.location.href = 'index.html';
+  } else {
+    // অনুমোদিত ইমেইল চেক
+    const allowedEmails = ["mohammadiaqub@gmail.com", "user@example.com"];
+    if (!allowedEmails.includes(user.email)) {
+      auth.signOut().then(() => {
+        window.location.href = 'index.html';
+      });
+    }
+  }
+});
+
     // DOM উপাদান
-    const employeeNameInput = document.getElementById('employeeName');
     const employeeIdInput = document.getElementById('employeeId');
     const monthSelect = document.getElementById('monthSelect');
     const yearSelect = document.getElementById('yearSelect');
@@ -199,12 +238,11 @@
     }
     yearSelect.value = currentYear;
 
-    // লোকাল স্টোরেজ ব্যবস্থাপনা
-    function getStorageKey() {
-      return `attendance-${employeeIdInput.value}-${yearSelect.value}-${monthSelect.value}`;
+    // ফাংশনগুলি
+    function getDocumentId() {
+      return `${employeeIdInput.value}_${yearSelect.value}_${monthSelect.value}`;
     }
 
-    // তারিখ সীমাবদ্ধতা সেট করুন
     function setDateLimitations() {
       const selectedYear = yearSelect.value;
       const selectedMonth = monthSelect.value;
@@ -214,45 +252,49 @@
       entryDateInput.max = lastDay.toISOString().split('T')[0];
     }
 
-    // সাপ্তাহিক ছুটি চেক
     function isWeekend(year, month, day) {
       const date = new Date(year, month, day);
       return date.getDay() === 0 || date.getDay() === 6;
     }
 
-    // টেবিল রেন্ডার
-    function renderTable() {
-      attendanceTableBody.innerHTML = '';
-      const storageKey = getStorageKey();
-      const savedData = JSON.parse(localStorage.getItem(storageKey)) || {};
-      const daysInMonth = new Date(yearSelect.value, parseInt(monthSelect.value) + 1, 0).getDate();
+    async function renderTable() {
+  attendanceTableBody.innerHTML = '';
+  const docId = getDocumentId();
+  
+  try {
+    const doc = await db.collection('attendance').doc(docId).get();
+    const savedData = doc.exists ? doc.data().days || {} : {};
+    const daysInMonth = new Date(yearSelect.value, parseInt(monthSelect.value) + 1, 0).getDate();
 
-      for (let day = 1; day <= daysInMonth; day++) {
-        const tr = document.createElement('tr');
-        if (isWeekend(yearSelect.value, monthSelect.value, day)) {
-          tr.classList.add('weekend');
-        }
-
-        const tdDate = document.createElement('td');
-        tdDate.textContent = day;
-        tr.appendChild(tdDate);
-
-        const tdAttendance = document.createElement('td');
-        tdAttendance.textContent = savedData[day]?.attendance === 'present' ? 'উপস্থিত' : (savedData[day] ? 'অনুপস্থিত' : '');
-        tr.appendChild(tdAttendance);
-
-        const tdOvertime = document.createElement('td');
-        tdOvertime.textContent = savedData[day]?.overtime || '0';
-        tr.appendChild(tdOvertime);
-
-        attendanceTableBody.appendChild(tr);
+    for (let day = 1; day <= daysInMonth; day++) {
+      const tr = document.createElement('tr');
+      if (isWeekend(yearSelect.value, monthSelect.value, day)) {
+        tr.classList.add('weekend');
       }
-    }
 
-    // ফর্ম ভ্যালিডেশন
+      const currentData = savedData[day.toString()]; // Key as string
+      
+      const tdDate = document.createElement('td');
+      tdDate.textContent = day;
+      tr.appendChild(tdDate);
+
+      const tdAttendance = document.createElement('td');
+      tdAttendance.textContent = currentData?.attendance === 'present' ? 'উপস্থিত' : (currentData ? 'অনুপস্থিত' : '');
+      tr.appendChild(tdAttendance);
+
+      const tdOvertime = document.createElement('td');
+      tdOvertime.textContent = currentData?.overtime || '0';
+      tr.appendChild(tdOvertime);
+
+      attendanceTableBody.appendChild(tr);
+    }
+  } catch (error) {
+    console.error("ডেটা লোডে ত্রুটি:", error);
+    alert('ডেটা লোড করতে সমস্যা হয়েছে!');
+  }
+}
     function validateForm() {
       let isValid = true;
-      
       document.querySelectorAll('.error').forEach(e => e.textContent = '');
 
       if (!entryDateInput.value) {
@@ -268,59 +310,74 @@
       return isValid;
     }
 
-    // এন্ট্রি সেভ
-    function saveEntry() {
-      if (!validateForm()) return;
+    async function saveEntry() {
+  if (!validateForm()) return;
 
-      const storageKey = getStorageKey();
-      const savedData = JSON.parse(localStorage.getItem(storageKey)) || {};
-      const day = new Date(entryDateInput.value).getDate();
+  const docId = getDocumentId();
+  const day = new Date(entryDateInput.value).getDate();
+  const attendanceData = {
+    attendance: attendanceStatusSelect.value,
+    overtime: overtimeInput.value || '0'
+  };
 
-      savedData[day] = {
-        attendance: attendanceStatusSelect.value,
-        overtime: overtimeInput.value || '0'
-      };
+  try {
+    // ডকুমেন্টের বেসিক ইনফো মের্জ করুন
+    await db.collection('attendance').doc(docId).set({
+      employeeId: employeeIdInput.value,
+      year: yearSelect.value,
+      month: monthSelect.value,
+    }, { merge: true });
 
-      localStorage.setItem(storageKey, JSON.stringify(savedData));
-      renderTable();
-      resetForm();
-    }
-
-    // ফর্ম রিসেট
+    // শুধুমাত্র সংশ্লিষ্ট দিনের ডেটা আপডেট করুন
+    await db.collection('attendance').doc(docId).update({
+      [`days.${day}`]: attendanceData
+    });
+    
+    renderTable();
+    resetForm();
+    alert('ডেটা সফলভাবে সংরক্ষণ করা হয়েছে!');
+  } catch (error) {
+    console.error("এন্ট্রি সংরক্ষণে ত্রুটি:", error);
+    alert('ডেটা সংরক্ষণে সমস্যা হয়েছে!');
+  }
+}
     function resetForm() {
       entryDateInput.value = '';
       attendanceStatusSelect.value = '';
       overtimeInput.value = '';
     }
 
-    // হিসাব করুন
-    function calculate() {
-      const storageKey = getStorageKey();
-      const savedData = JSON.parse(localStorage.getItem(storageKey)) || {};
-      let presentDays = 0;
-      let totalOvertime = 0;
+    async function calculate() {
+      const docId = getDocumentId();
+      
+      try {
+        const doc = await db.collection('attendance').doc(docId).get();
+        const savedData = doc.exists ? doc.data().days || {} : {};
+        
+        let presentDays = 0;
+        let totalOvertime = 0;
+        
+        Object.values(savedData).forEach(entry => {
+          if (entry.attendance === 'present') presentDays++;
+          totalOvertime += parseFloat(entry.overtime) || 0;
+        });
 
-      Object.values(savedData).forEach(entry => {
-        if (entry.attendance === 'present') presentDays++;
-        totalOvertime += parseFloat(entry.overtime) || 0;
-      });
-
-      resultDiv.innerHTML = `
-        <h3>ফলাফল:</h3>
-        <p>মোট উপস্থিত দিন: ${presentDays}</p>
-        <p>মোট ওভারটাইম: ${totalOvertime.toFixed(1)} ঘণ্টা</p>
-      `;
+        resultDiv.innerHTML = `
+          <h3>ফলাফল:</h3>
+          <p>মোট উপস্থিত দিন: ${presentDays}</p>
+          <p>মোট ওভারটাইম: ${totalOvertime.toFixed(1)} ঘণ্টা</p>
+        `;
+      } catch (error) {
+        console.error("হিসাবে ত্রুটি:", error);
+        alert('হিসাব করতে সমস্যা হয়েছে!');
+      }
     }
 
-    // প্রিন্ট ফাংশন
     function printTable() {
-      // প্রিন্টের জন্য তথ্য সেট করুন
-      document.getElementById('printName').textContent = employeeNameInput.value;
+      document.getElementById('printName').textContent = document.getElementById('employeeName').value;
       document.getElementById('printId').textContent = employeeIdInput.value;
       document.getElementById('printMonth').textContent = monthSelect.options[monthSelect.selectedIndex].text;
       document.getElementById('printYear').textContent = yearSelect.value;
-
-      // প্রিন্ট ভিউ সক্রিয় করুন
       window.print();
     }
 
