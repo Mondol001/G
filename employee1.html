@@ -399,7 +399,7 @@
       }
     });
 
-    // দৈনিক এন্ট্রি সংরক্ষণ
+    // দৈনিক এন্ট্রি সংরক্ষণ (একই তারিখ থাকলে আপডেট হবে)
     saveEntryBtn.addEventListener('click', async () => {
       if (!employeeSelect.value) {
         alert('কর্মী নির্বাচন করুন');
@@ -419,19 +419,29 @@
         document.getElementById('attendanceError').textContent = '';
       }
       
+      const entryDateValue = new Date(entryDateInput.value);
       const entryData = {
-        date: new Date(entryDateInput.value),
+        date: entryDateValue,
         status: attendanceStatusSelect.value,
         overtime: parseFloat(overtimeInput.value) || 0,
         timestamp: firebase.firestore.FieldValue.serverTimestamp()
       };
 
       try {
-        await db.collection('employees')
-          .doc(employeeSelect.value)
-          .collection('attendance')
-          .add(entryData);
-        alert('এন্ট্রি সফলভাবে সংরক্ষিত হয়েছে!');
+        // প্রথমে চেক করুন একই তারিখের এন্ট্রি আছে কি না
+        const attendanceRef = db.collection('employees').doc(employeeSelect.value).collection('attendance');
+        const querySnapshot = await attendanceRef.where('date', '==', entryDateValue).get();
+
+        if (!querySnapshot.empty) {
+          // একই তারিখের এন্ট্রি পাওয়া গেল, তাহলে প্রথমটি আপডেট করুন
+          const docId = querySnapshot.docs[0].id;
+          await attendanceRef.doc(docId).update(entryData);
+          alert('এন্ট্রি আপডেট করা হয়েছে!');
+        } else {
+          // একই তারিখের এন্ট্রি না থাকলে নতুন এন্ট্রি তৈরি করুন
+          await attendanceRef.add(entryData);
+          alert('এন্ট্রি সফলভাবে সংরক্ষিত হয়েছে!');
+        }
         // এন্ট্রি সংরক্ষণের পরে, যদি মাস লোড করা থাকে, তাহলে টেবিল রিফ্রেশ করুন
         if (monthSelect.value !== "" && yearSelect.value !== "") {
           loadMonthBtn.click();
