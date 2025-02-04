@@ -27,56 +27,56 @@
     </div>
     <div class="d-grid gap-2 mb-3">
       <button onclick="login()" class="btn btn-primary">লগিন করুন</button>
-      <button onclick="signUp()" class="btn btn-success">রেজিস্টার করুন</button>
       <button onclick="googleLogin()" class="btn btn-danger">Google দিয়ে লগিন</button>
     </div>
   </div>
 
   <script>
-    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyD-WhTe1Kqx4IRaeg_w9s-diHKPE6i6uaE",
-  authDomain: "data-entry-app-3923a.firebaseapp.com",
-  databaseURL: "https://data-entry-app-3923a-default-rtdb.firebaseio.com",
-  projectId: "data-entry-app-3923a",
-  storageBucket: "data-entry-app-3923a.firebasestorage.app",
-  messagingSenderId: "638964410595",
-  appId: "1:638964410595:web:80c8ffa7fe8fc1a48cbdd6",
-  measurementId: "G-01NQ8H9KB7"
-};
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyD-WhTe1Kqx4IRaeg_w9s-diHKPE6i6uaE",
+      authDomain: "data-entry-app-3923a.firebaseapp.com",
+      databaseURL: "https://data-entry-app-3923a-default-rtdb.firebaseio.com",
+      projectId: "data-entry-app-3923a",
+      storageBucket: "data-entry-app-3923a.firebasestorage.app",
+      messagingSenderId: "638964410595",
+      appId: "1:638964410595:web:80c8ffa7fe8fc1a48cbdd6",
+      measurementId: "G-01NQ8H9KB7"
+    };
 
     const app = firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
 
+    // Allowed emails for Google login
+    const allowedEmails = ["admin@example.com", "user@example.com"]; // Firebase কনসোলে যোগ করা ইমেইলগুলি এখানে লিখুন
+
+    // Email and Password Login
     async function login() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
       try {
-        await auth.signInWithEmailAndPassword(
-          document.getElementById('email').value,
-          document.getElementById('password').value
-        );
+        await auth.signInWithEmailAndPassword(email, password);
         window.location.href = 'dashboard.html';
       } catch (error) {
         document.getElementById('authError').textContent = error.message;
       }
     }
 
-    async function signUp() {
-      try {
-        const credential = await auth.createUserWithEmailAndPassword(
-          document.getElementById('email').value,
-          document.getElementById('password').value
-        );
-        window.location.href = 'employee1.html';
-      } catch (error) {
-        document.getElementById('authError').textContent = error.message;
-      }
-    }
-
+    // Google Login
     async function googleLogin() {
       const provider = new firebase.auth.GoogleAuthProvider();
       try {
-        await auth.signInWithPopup(provider);
-        window.location.href = 'employee1.html';
+        const result = await auth.signInWithPopup(provider);
+        const userEmail = result.user.email;
+
+        // Check if the logged-in email is in the allowed list
+        if (allowedEmails.includes(userEmail)) {
+          window.location.href = 'dashboard.html';
+        } else {
+          await auth.signOut(); // Log out the user if not allowed
+          document.getElementById('authError').textContent = "আপনার অ্যাক্সেস অনুমোদিত নয়।";
+        }
       } catch (error) {
         document.getElementById('authError').textContent = error.message;
       }
