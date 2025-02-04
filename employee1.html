@@ -313,6 +313,8 @@
           const data = doc.data();
           selectedEmployeeName.textContent = data.name;
           selectedEmployeeId.textContent = `আইডি: ${data.employeeId}`;
+          // কর্মী নির্বাচন হলে স্বয়ংক্রিয়ভাবে মাসের এন্ট্রি লোড হবে
+          loadMonthBtn.click();
         }
       } else {
         selectedEmployeeName.textContent = 'নাম: ';
@@ -381,11 +383,8 @@
 
       try {
         await db.collection('employees').add(newEmployee);
-        // সফলতার বার্তা দেখানো
         alert('নতুন কর্মী সফলভাবে যোগ করা হয়েছে!');
-        // ফর্মটি রিসেট করা
         document.getElementById('newEmployeeForm').reset();
-        // কর্মী তালিকা রিলোড করা
         await loadEmployees();
         // মোডাল বন্ধ করা (Bootstrap 5 Modal instance ব্যবহার করে)
         const newEmployeeModalEl = document.getElementById('newEmployeeModal');
@@ -428,25 +427,25 @@
       };
 
       try {
-        // প্রথমে চেক করুন একই তারিখের এন্ট্রি আছে কি না
+        // একই তারিখের এন্ট্রি আছে কি না তা চেক করা হচ্ছে
         const attendanceRef = db.collection('employees').doc(employeeSelect.value).collection('attendance');
         const querySnapshot = await attendanceRef.where('date', '==', entryDateValue).get();
 
         if (!querySnapshot.empty) {
-          // একই তারিখের এন্ট্রি পাওয়া গেল, তাহলে প্রথমটি আপডেট করুন
+          // একই তারিখের এন্ট্রি থাকলে প্রথমটি আপডেট করা হবে
           const docId = querySnapshot.docs[0].id;
           await attendanceRef.doc(docId).update(entryData);
           alert('এন্ট্রি আপডেট করা হয়েছে!');
         } else {
-          // একই তারিখের এন্ট্রি না থাকলে নতুন এন্ট্রি তৈরি করুন
+          // একই তারিখের এন্ট্রি না থাকলে নতুন এন্ট্রি তৈরি করা হবে
           await attendanceRef.add(entryData);
           alert('এন্ট্রি সফলভাবে সংরক্ষিত হয়েছে!');
         }
-        // এন্ট্রি সংরক্ষণের পরে, যদি মাস লোড করা থাকে, তাহলে টেবিল রিফ্রেশ করুন
+        // মাস লোড রিফ্রেশ করা
         if (monthSelect.value !== "" && yearSelect.value !== "") {
           loadMonthBtn.click();
         }
-        // ইনপুট ফিল্ড রিসেট (ওভারটাইম ফিল্ড)
+        // ইনপুট রিসেট (ওভারটাইম)
         overtimeInput.value = '';
       } catch (error) {
         console.error('এন্ট্রি সংরক্ষণে ত্রুটি:', error);
