@@ -64,9 +64,19 @@
   </div>
 
   <script>
-
-    const auth = firebase.auth();
-
+// Employee data
+    const employees = [
+      { name: "John Doe", pageUrl: "employee1.html" },
+      { name: "Jane Smith", pageUrl: "employee2.html" },
+      { name: "Michael Johnson", pageUrl: "employee3.html" },
+      { name: "Emily Davis", pageUrl: "employee4.html" },
+      { name: "Chris Brown", pageUrl: "employee5.html" },
+      { name: "Sophia Wilson", pageUrl: "employee6.html" },
+      { name: "Daniel Martinez", pageUrl: "employee7.html" },
+      { name: "Olivia Garcia", pageUrl: "employee8.html" },
+      { name: "Ethan Lee", pageUrl: "employee9.html" },
+      { name: "Ava Taylor", pageUrl: "employee10.html" }
+    ];
 // অথেন্টিকেশন স্টেট চেক
 auth.onAuthStateChanged((user) => {
   if (!user) {
@@ -82,20 +92,6 @@ auth.onAuthStateChanged((user) => {
   }
 });
     
-    // Employee data
-    const employees = [
-      { name: "John Doe", pageUrl: "employee1.html" },
-      { name: "Jane Smith", pageUrl: "employee2.html" },
-      { name: "Michael Johnson", pageUrl: "employee3.html" },
-      { name: "Emily Davis", pageUrl: "employee4.html" },
-      { name: "Chris Brown", pageUrl: "employee5.html" },
-      { name: "Sophia Wilson", pageUrl: "employee6.html" },
-      { name: "Daniel Martinez", pageUrl: "employee7.html" },
-      { name: "Olivia Garcia", pageUrl: "employee8.html" },
-      { name: "Ethan Lee", pageUrl: "employee9.html" },
-      { name: "Ava Taylor", pageUrl: "employee10.html" }
-    ];
-
     // Render employee cards
     const renderEmployeeCards = (employeeList) => {
       const container = document.getElementById('employeeContainer');
