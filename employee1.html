@@ -147,6 +147,7 @@
           <select id="yearSelect" class="form-select"></select>
         </div>
         <div class="col-md-4 d-flex align-items-end">
+          <!-- 'মাস লোড করুন' বাটন কে রিফ্রেশ/লোড ফাংশনের জন্য রাখা হয়েছে, কিন্তু আপনি চাইলে এটিকে লুকিয়ে রাখতে পারেন -->
           <button id="loadMonth" class="btn btn-primary w-100">মাস লোড করুন</button>
         </div>
       </div>
@@ -196,10 +197,7 @@
         </table>
       </div>
       
-      <div class="d-flex justify-content-center gap-2 mt-3 no-print">
-        <button id="calculateBtn" class="btn btn-success">হিসাব করুন</button>
-        <button id="printBtn" class="btn btn-primary">প্রিন্ট করুন</button>
-      </div>
+      <!-- হিসাবের ফলাফল ডাইনামিক ভাবে দেখানো হবে -->
       <div id="result" class="mt-3 p-3 bg-light rounded"></div>
     </div>
   </div>
@@ -269,8 +267,6 @@
     const overtimeInput = document.getElementById('overtimeInput');
     const saveEntryBtn = document.getElementById('saveEntry');
     const attendanceTableBody = document.querySelector('#attendanceTable tbody');
-    const calculateBtn = document.getElementById('calculateBtn');
-    const printBtn = document.getElementById('printBtn');
     const resultDiv = document.getElementById('result');
 
     // ইনপুট ফিল্ডে ডিফল্ট তারিখ (আজকের তারিখ) সেট করা
@@ -279,14 +275,14 @@
     // বর্তমান মাস ও বছর ডিফল্ট হিসেবে সেট করা
     const currentDate = new Date();
     monthSelect.value = currentDate.getMonth(); // 0-১১ এর মধ্যে
-    const currentYear = currentDate.getFullYear();
-    for (let y = currentYear - 5; y <= currentYear + 5; y++) {
+    const currentYearVal = currentDate.getFullYear();
+    for (let y = currentYearVal - 5; y <= currentYearVal + 5; y++) {
       const option = document.createElement('option');
       option.value = y;
       option.textContent = y;
       yearSelect.appendChild(option);
     }
-    yearSelect.value = currentYear;
+    yearSelect.value = currentYearVal;
 
     // কর্মী লোড করার ফাংশন
     async function loadEmployees() {
@@ -305,42 +301,16 @@
       }
     }
 
-    // কর্মী নির্বাচন ইভেন্ট
-    employeeSelect.addEventListener('change', async () => {
-      if (employeeSelect.value) {
-        const doc = await db.collection('employees').doc(employeeSelect.value).get();
-        if (doc.exists) {
-          const data = doc.data();
-          selectedEmployeeName.textContent = data.name;
-          selectedEmployeeId.textContent = `আইডি: ${data.employeeId}`;
-          // কর্মী নির্বাচন হলে স্বয়ংক্রিয়ভাবে মাসের এন্ট্রি লোড হবে
-          loadMonthBtn.click();
-        }
-      } else {
-        selectedEmployeeName.textContent = 'নাম: ';
-        selectedEmployeeId.textContent = '';
-      }
-    });
-
-    // নির্বাচন বাতিল করার বাটন
-    clearSelectionBtn.addEventListener('click', () => {
-      employeeSelect.value = '';
-      selectedEmployeeName.textContent = 'নাম: ';
-      selectedEmployeeId.textContent = '';
-    });
-
-    // মাস লোড করার ফাংশন
-    loadMonthBtn.addEventListener('click', async () => {
+    // মাস ও এন্ট্রি লোড করার ফাংশন (হিসাব ডাইনামিকভাবে করা হবে)
+    async function loadMonthlyAttendance() {
       if (!employeeSelect.value) {
-        alert('দয়া করে প্রথমে কর্মী নির্বাচন করুন');
         return;
       }
       const month = parseInt(monthSelect.value);
       const year = parseInt(yearSelect.value);
-      // নির্বাচিত মাসের প্রথম ও শেষ দিন নির্ধারণ
       const startDate = new Date(year, month, 1);
       const endDate = new Date(year, month + 1, 0);
-      
+
       try {
         const snapshot = await db.collection('employees')
           .doc(employeeSelect.value)
@@ -350,25 +320,66 @@
           .get();
 
         attendanceTableBody.innerHTML = '';
+        let totalPresent = 0;
+        let totalOvertime = 0;
         if (snapshot.empty) {
           attendanceTableBody.innerHTML = `<tr><td colspan="3" class="text-center">কোন এন্ট্রি নেই</td></tr>`;
+        } else {
+          snapshot.forEach(doc => {
+            const data = doc.data();
+            const entryDate = data.date && data.date.toDate ? data.date.toDate() : new Date(data.date);
+            if (data.status === 'present') totalPresent++;
+            totalOvertime += data.overtime;
+            const row = `
+              <tr>
+                <td>${entryDate.toLocaleDateString('bn-BD')}</td>
+                <td>${data.status === 'present' ? 'উপস্থিত' : 'অনুপস্থিত'}</td>
+                <td>${data.overtime}</td>
+              </tr>
+            `;
+            attendanceTableBody.innerHTML += row;
+          });
         }
-        snapshot.forEach(doc => {
-          const data = doc.data();
-          const entryDate = data.date && data.date.toDate ? data.date.toDate() : new Date(data.date);
-          const row = `
-            <tr>
-              <td>${entryDate.toLocaleDateString('bn-BD')}</td>
-              <td>${data.status === 'present' ? 'উপস্থিত' : 'অনুপস্থিত'}</td>
-              <td>${data.overtime}</td>
-            </tr>
-          `;
-          attendanceTableBody.innerHTML += row;
-        });
+        // হিসাব ফলাফল ডাইনামিকভাবে দেখানো
+        resultDiv.innerHTML = `
+          <h4>মোট উপস্থিতি: ${totalPresent} দিন</h4>
+          <h4>মোট ওভারটাইম: ${totalOvertime} ঘণ্টা</h4>
+        `;
       } catch (error) {
         console.error('মাস লোড করতে ত্রুটি:', error);
       }
+    }
+
+    // কর্মী নির্বাচন ইভেন্ট (নির্বাচনের সাথে সাথে মাসের এন্ট্রি ডাইনামিকভাবে লোড হবে)
+    employeeSelect.addEventListener('change', async () => {
+      if (employeeSelect.value) {
+        const doc = await db.collection('employees').doc(employeeSelect.value).get();
+        if (doc.exists) {
+          const data = doc.data();
+          selectedEmployeeName.textContent = data.name;
+          selectedEmployeeId.textContent = `আইডি: ${data.employeeId}`;
+          // কর্মী নির্বাচন হলে মাসের এন্ট্রি স্বয়ংক্রিয়ভাবে লোড হবে
+          loadMonthlyAttendance();
+        }
+      } else {
+        selectedEmployeeName.textContent = 'নাম: ';
+        selectedEmployeeId.textContent = '';
+        attendanceTableBody.innerHTML = '';
+        resultDiv.innerHTML = '';
+      }
     });
+
+    // নির্বাচন বাতিল করার বাটন
+    clearSelectionBtn.addEventListener('click', () => {
+      employeeSelect.value = '';
+      selectedEmployeeName.textContent = 'নাম: ';
+      selectedEmployeeId.textContent = '';
+      attendanceTableBody.innerHTML = '';
+      resultDiv.innerHTML = '';
+    });
+
+    // 'মাস লোড করুন' বাটনও কাজ করবে (যদি মাস বা বছর পরিবর্তন করা হয়)
+    loadMonthBtn.addEventListener('click', loadMonthlyAttendance);
     
     // নতুন কর্মী ফর্ম সাবমিশন
     document.getElementById('newEmployeeForm').addEventListener('submit', async (e) => {
@@ -404,7 +415,6 @@
         alert('কর্মী নির্বাচন করুন');
         return;
       }
-      // ইনপুট যাচাই: তারিখ ও হাজিরা অবশ্যই নির্বাচন করতে হবে
       if (!entryDateInput.value) {
         document.getElementById('dateError').textContent = 'তারিখ নির্বাচন করুন';
         return;
@@ -427,25 +437,19 @@
       };
 
       try {
-        // একই তারিখের এন্ট্রি আছে কি না তা চেক করা হচ্ছে
         const attendanceRef = db.collection('employees').doc(employeeSelect.value).collection('attendance');
         const querySnapshot = await attendanceRef.where('date', '==', entryDateValue).get();
 
         if (!querySnapshot.empty) {
-          // একই তারিখের এন্ট্রি থাকলে প্রথমটি আপডেট করা হবে
           const docId = querySnapshot.docs[0].id;
           await attendanceRef.doc(docId).update(entryData);
           alert('এন্ট্রি আপডেট করা হয়েছে!');
         } else {
-          // একই তারিখের এন্ট্রি না থাকলে নতুন এন্ট্রি তৈরি করা হবে
           await attendanceRef.add(entryData);
           alert('এন্ট্রি সফলভাবে সংরক্ষিত হয়েছে!');
         }
-        // মাস লোড রিফ্রেশ করা
-        if (monthSelect.value !== "" && yearSelect.value !== "") {
-          loadMonthBtn.click();
-        }
-        // ইনপুট রিসেট (ওভারটাইম)
+        // মাসের এন্ট্রি ও হিসাব ডাইনামিকভাবে রিফ্রেশ হবে
+        loadMonthlyAttendance();
         overtimeInput.value = '';
       } catch (error) {
         console.error('এন্ট্রি সংরক্ষণে ত্রুটি:', error);
@@ -453,41 +457,6 @@
       }
     });
 
-    // হিসাব করার ফাংশন (সকল এন্ট্রি থেকে)
-    calculateBtn.addEventListener('click', async () => {
-      if (!employeeSelect.value) {
-        alert('কর্মী নির্বাচন করুন');
-        return;
-      }
-      try {
-        const snapshot = await db.collection('employees')
-          .doc(employeeSelect.value)
-          .collection('attendance')
-          .get();
-
-        let totalPresent = 0;
-        let totalOvertime = 0;
-        
-        snapshot.forEach(doc => {
-          const data = doc.data();
-          if (data.status === 'present') totalPresent++;
-          totalOvertime += data.overtime;
-        });
-
-        resultDiv.innerHTML = `
-          <h4>মোট উপস্থিতি: ${totalPresent} দিন</h4>
-          <h4>মোট ওভারটাইম: ${totalOvertime} ঘণ্টা</h4>
-        `;
-      } catch (error) {
-        console.error('হিসাব করতে ত্রুটি:', error);
-      }
-    });
-
-    // প্রিন্ট বাটন
-    printBtn.addEventListener('click', () => {
-      window.print();
-    });
-    
     // প্রাথমিক লোড
     loadEmployees();
   </script>
