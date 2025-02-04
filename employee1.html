@@ -85,7 +85,9 @@
       <div class="employee-selector">
         <div class="row g-3 align-items-center">
           <div class="col-md-8">
-            <label class="form-label"><i class="fas fa-user-tie"></i> কর্মী নির্বাচন করুন:</label>
+            <label class="form-label">
+              <i class="fas fa-user-tie"></i> কর্মী নির্বাচন করুন:
+            </label>
             <select id="employeeSelect" class="form-select form-select-lg">
               <option value="">কর্মী নির্বাচন করুন...</option>
             </select>
@@ -147,7 +149,7 @@
           <select id="yearSelect" class="form-select"></select>
         </div>
         <div class="col-md-4 d-flex align-items-end">
-          <!-- 'মাস লোড করুন' বাটন কে রিফ্রেশ/লোড ফাংশনের জন্য রাখা হয়েছে, কিন্তু আপনি চাইলে এটিকে লুকিয়ে রাখতে পারেন -->
+          <!-- 'মাস লোড করুন' বাটন (ঐচ্ছিক, মাস/বছর পরিবর্তনের ক্ষেত্রে ব্যবহার হবে) -->
           <button id="loadMonth" class="btn btn-primary w-100">মাস লোড করুন</button>
         </div>
       </div>
@@ -181,7 +183,7 @@
       </div>
     </div>
     
-    <!-- মাসিক ডাটা টেবিল -->
+    <!-- মাসিক ডাটা টেবিল এবং ফলাফল -->
     <div class="monthly-table">
       <h2 class="mb-3 no-print">মাসিক এন্ট্রি</h2>
       <div class="table-responsive">
@@ -197,7 +199,12 @@
         </table>
       </div>
       
-      <!-- হিসাবের ফলাফল ডাইনামিক ভাবে দেখানো হবে -->
+      <!-- প্রিন্ট বাটন, যা প্রদর্শিত থাকবে -->
+      <div class="d-flex justify-content-center gap-2 mt-3 no-print">
+        <button id="printBtn" class="btn btn-primary">প্রিন্ট করুন</button>
+      </div>
+      
+      <!-- হিসাব ফলাফল -->
       <div id="result" class="mt-3 p-3 bg-light rounded"></div>
     </div>
   </div>
@@ -207,7 +214,9 @@
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="newEmployeeModalLabel"><i class="fas fa-user-plus"></i> নতুন কর্মী যোগ করুন</h5>
+          <h5 class="modal-title" id="newEmployeeModalLabel">
+            <i class="fas fa-user-plus"></i> নতুন কর্মী যোগ করুন
+          </h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="বন্ধ করুন"></button>
         </div>
         <div class="modal-body">
@@ -268,13 +277,14 @@
     const saveEntryBtn = document.getElementById('saveEntry');
     const attendanceTableBody = document.querySelector('#attendanceTable tbody');
     const resultDiv = document.getElementById('result');
+    const printBtn = document.getElementById('printBtn');
 
     // ইনপুট ফিল্ডে ডিফল্ট তারিখ (আজকের তারিখ) সেট করা
     entryDateInput.value = new Date().toISOString().split('T')[0];
 
     // বর্তমান মাস ও বছর ডিফল্ট হিসেবে সেট করা
     const currentDate = new Date();
-    monthSelect.value = currentDate.getMonth(); // 0-১১ এর মধ্যে
+    monthSelect.value = currentDate.getMonth();
     const currentYearVal = currentDate.getFullYear();
     for (let y = currentYearVal - 5; y <= currentYearVal + 5; y++) {
       const option = document.createElement('option');
@@ -303,9 +313,7 @@
 
     // মাস ও এন্ট্রি লোড করার ফাংশন (হিসাব ডাইনামিকভাবে করা হবে)
     async function loadMonthlyAttendance() {
-      if (!employeeSelect.value) {
-        return;
-      }
+      if (!employeeSelect.value) return;
       const month = parseInt(monthSelect.value);
       const year = parseInt(yearSelect.value);
       const startDate = new Date(year, month, 1);
@@ -340,7 +348,7 @@
             attendanceTableBody.innerHTML += row;
           });
         }
-        // হিসাব ফলাফল ডাইনামিকভাবে দেখানো
+        // ফলাফল (হিসাব) ডাইনামিকভাবে দেখানো
         resultDiv.innerHTML = `
           <h4>মোট উপস্থিতি: ${totalPresent} দিন</h4>
           <h4>মোট ওভারটাইম: ${totalOvertime} ঘণ্টা</h4>
@@ -350,7 +358,7 @@
       }
     }
 
-    // কর্মী নির্বাচন ইভেন্ট (নির্বাচনের সাথে সাথে মাসের এন্ট্রি ডাইনামিকভাবে লোড হবে)
+    // কর্মী নির্বাচন ইভেন্ট (নির্বাচনের সাথে সাথে মাসের এন্ট্রি ও হিসাব ডাইনামিকভাবে লোড হবে)
     employeeSelect.addEventListener('change', async () => {
       if (employeeSelect.value) {
         const doc = await db.collection('employees').doc(employeeSelect.value).get();
@@ -358,7 +366,6 @@
           const data = doc.data();
           selectedEmployeeName.textContent = data.name;
           selectedEmployeeId.textContent = `আইডি: ${data.employeeId}`;
-          // কর্মী নির্বাচন হলে মাসের এন্ট্রি স্বয়ংক্রিয়ভাবে লোড হবে
           loadMonthlyAttendance();
         }
       } else {
@@ -378,9 +385,9 @@
       resultDiv.innerHTML = '';
     });
 
-    // 'মাস লোড করুন' বাটনও কাজ করবে (যদি মাস বা বছর পরিবর্তন করা হয়)
+    // 'মাস লোড করুন' বাটন (যদি মাস বা বছর পরিবর্তন করা হয়)
     loadMonthBtn.addEventListener('click', loadMonthlyAttendance);
-    
+
     // নতুন কর্মী ফর্ম সাবমিশন
     document.getElementById('newEmployeeForm').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -397,10 +404,9 @@
         alert('নতুন কর্মী সফলভাবে যোগ করা হয়েছে!');
         document.getElementById('newEmployeeForm').reset();
         await loadEmployees();
-        // মোডাল বন্ধ করা (Bootstrap 5 Modal instance ব্যবহার করে)
         const newEmployeeModalEl = document.getElementById('newEmployeeModal');
         const modalInstance = bootstrap.Modal.getInstance(newEmployeeModalEl);
-        if(modalInstance) {
+        if (modalInstance) {
           modalInstance.hide();
         }
       } catch (error) {
@@ -448,13 +454,17 @@
           await attendanceRef.add(entryData);
           alert('এন্ট্রি সফলভাবে সংরক্ষিত হয়েছে!');
         }
-        // মাসের এন্ট্রি ও হিসাব ডাইনামিকভাবে রিফ্রেশ হবে
         loadMonthlyAttendance();
         overtimeInput.value = '';
       } catch (error) {
         console.error('এন্ট্রি সংরক্ষণে ত্রুটি:', error);
         alert('এন্ট্রি সংরক্ষণে সমস্যা হয়েছে, আবার চেষ্টা করুন');
       }
+    });
+
+    // প্রিন্ট বাটন: ক্লিক করলে window.print() কল করা হবে
+    printBtn.addEventListener('click', () => {
+      window.print();
     });
 
     // প্রাথমিক লোড
