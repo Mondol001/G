@@ -205,7 +205,7 @@ auth.onAuthStateChanged((user) => {
     window.location.href = 'index.html';
   } else {
     // অনুমোদিত ইমেইল চেক
-    const allowedEmails = ["mohammadiaqub@gmail.com", "borhan@admin.com"];
+    const allowedEmails = ["mohammadiaqub@gmail.com", "user@admin.com"];
     if (!allowedEmails.includes(user.email)) {
       auth.signOut().then(() => {
         window.location.href = 'index.html';
