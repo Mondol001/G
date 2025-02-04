@@ -158,8 +158,7 @@
       <div class="row g-3">
         <div class="col-md-4">
           <label for="entryDate" class="form-label">তারিখ:</label>
-          <!-- বর্তমান তারিখকে ডিফল্ট হিসেবে সেট করা হয়েছে -->
-          <input type="date" id="entryDate" class="form-control" value="<?= date('Y-m-d') ?>">
+          <input type="date" id="entryDate" class="form-control">
           <span id="dateError" class="error text-danger"></span>
         </div>
         <div class="col-md-4">
@@ -227,7 +226,6 @@
               <label class="form-label">জমার তারিখ</label>
               <input type="date" class="form-control" id="newEmployeeJoinDate" required>
             </div>
-            <div id="employeeFeedback" class="text-success"></div>
           </form>
         </div>
         <div class="modal-footer">
@@ -275,11 +273,13 @@
     const printBtn = document.getElementById('printBtn');
     const resultDiv = document.getElementById('result');
 
-    // ডিফল্ট তারিখ (আজকের তারিখ) ইনপুটে সেট করা
+    // ইনপুট ফিল্ডে ডিফল্ট তারিখ (আজকের তারিখ) সেট করা
     entryDateInput.value = new Date().toISOString().split('T')[0];
 
-    // বছর সিলেক্ট পূরণ
-    const currentYear = new Date().getFullYear();
+    // বর্তমান মাস ও বছর ডিফল্ট হিসেবে সেট করা
+    const currentDate = new Date();
+    monthSelect.value = currentDate.getMonth(); // 0-১১ এর মধ্যে
+    const currentYear = currentDate.getFullYear();
     for (let y = currentYear - 5; y <= currentYear + 5; y++) {
       const option = document.createElement('option');
       option.value = y;
@@ -337,7 +337,6 @@
       const year = parseInt(yearSelect.value);
       // নির্বাচিত মাসের প্রথম ও শেষ দিন নির্ধারণ
       const startDate = new Date(year, month, 1);
-      // মাসের শেষ দিন: নতুন মাসের ০তম দিন
       const endDate = new Date(year, month + 1, 0);
       
       try {
@@ -382,17 +381,18 @@
 
       try {
         await db.collection('employees').add(newEmployee);
-        // কর্মী যোগ হওয়ার পরে ফর্ম রিসেট এবং তালিকা পুনরায় লোড করা
+        // সফলতার বার্তা দেখানো
+        alert('নতুন কর্মী সফলভাবে যোগ করা হয়েছে!');
+        // ফর্মটি রিসেট করা
         document.getElementById('newEmployeeForm').reset();
+        // কর্মী তালিকা রিলোড করা
         await loadEmployees();
-        // মোডাল বন্ধ করার জন্য বুটস্ট্র্যাপ ৫ এর Modal instance ব্যবহার করা
+        // মোডাল বন্ধ করা (Bootstrap 5 Modal instance ব্যবহার করে)
         const newEmployeeModalEl = document.getElementById('newEmployeeModal');
         const modalInstance = bootstrap.Modal.getInstance(newEmployeeModalEl);
         if(modalInstance) {
           modalInstance.hide();
         }
-        // সফলতা বার্তা দেখানো
-        alert('নতুন কর্মী সফলভাবে যোগ করা হয়েছে!');
       } catch (error) {
         console.error('কর্মী সংরক্ষণে ত্রুটি:', error);
         alert('কর্মী সংরক্ষণে ত্রুটি হয়েছে, আবার চেষ্টা করুন।');
