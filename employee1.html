@@ -265,6 +265,7 @@
     // Firebase ইনিশিয়ালাইজেশন
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
+const auth = firebase.auth();
 
     // DOM উপাদান
     const employeeSelect = document.getElementById('employeeSelect');
@@ -313,18 +314,54 @@
 
     // কর্মী নির্বাচন ইভেন্ট
     employeeSelect.addEventListener('change', async () => {
-      if (employeeSelect.value) {
-        const doc = await db.collection('employees').doc(employeeSelect.value).get();
-        if (doc.exists) {
-          const data = doc.data();
-          selectedEmployeeName.textContent = data.name;
-          selectedEmployeeId.textContent = `আইডি: ${data.employeeId}`;
-          document.getElementById('employeeId').value = data.employeeId;
-          document.getElementById('employeeName').value = data.name;
-        }
-      }
-    });
+  if (employeeSelect.value) {
+    const doc = await db.collection('employees').doc(employeeSelect.value).get();
+    if (doc.exists) {
+      const data = doc.data();
+      selectedEmployeeName.textContent = data.name;
+      selectedEmployeeId.textContent = `আইডি: ${data.employeeId}`;
+      // Remove non-existent element references
+    }
+  }
+});
 
+    clearSelectionBtn.addEventListener('click', () => {
+  employeeSelect.value = '';
+  selectedEmployeeName.textContent = 'নাম: ';
+  selectedEmployeeId.textContent = '';
+});
+
+
+    loadMonthBtn.addEventListener('click', async () => {
+  if (!employeeSelect.value) return alert('কর্মী নির্বাচন করুন');
+  
+  const month = parseInt(monthSelect.value);
+  const year = parseInt(yearSelect.value);
+  
+  const startDate = new Date(year, month, 1);
+  const endDate = new Date(year, month + 1, 0);
+  
+  const snapshot = await db.collection('employees')
+    .doc(employeeSelect.value)
+    .collection('attendance')
+    .where('date', '>=', startDate)
+    .where('date', '<=', endDate)
+    .get();
+
+  attendanceTableBody.innerHTML = '';
+  snapshot.forEach(doc => {
+    const data = doc.data();
+    const row = `
+      <tr>
+        <td>${data.date.toDate().toLocaleDateString('bn-BD')}</td>
+        <td>${data.status === 'present' ? 'উপস্থিত' : 'অনুপস্থিত'}</td>
+        <td>${data.overtime}</td>
+      </tr>
+    `;
+    attendanceTableBody.innerHTML += row;
+  });
+});
+    
     // নতুন কর্মী ফর্ম সাবমিশন
     document.getElementById('newEmployeeForm').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -345,6 +382,48 @@
         console.error('কর্মী সংরক্ষণে ত্রুটি:', error);
       }
     });
+saveEntryBtn.addEventListener('click', async () => {
+  if (!employeeSelect.value) return alert('কর্মী নির্বাচন করুন');
+  
+  const entryData = {
+    date: new Date(entryDateInput.value),
+    status: attendanceStatusSelect.value,
+    overtime: parseFloat(overtimeInput.value) || 0,
+    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+  };
+
+  await db.collection('employees')
+    .doc(employeeSelect.value)
+    .collection('attendance')
+    .add(entryData);
+
+  alert('এন্ট্রি সফলভাবে সংরক্ষিত হয়েছে!');
+});
+
+    calculateBtn.addEventListener('click', async () => {
+  const snapshot = await db.collection('employees')
+    .doc(employeeSelect.value)
+    .collection('attendance')
+    .get();
+
+  let totalPresent = 0;
+  let totalOvertime = 0;
+  
+  snapshot.forEach(doc => {
+    const data = doc.data();
+    if (data.status === 'present') totalPresent++;
+    totalOvertime += data.overtime;
+  });
+
+  resultDiv.innerHTML = `
+    <h4>মোট উপস্থিতি: ${totalPresent} দিন</h4>
+    <h4>মোট ওভারটাইম: ${totalOvertime} ঘণ্টা</h4>
+  `;
+});
+    printBtn.addEventListener('click', () => {
+  window.print();
+});
+    
 
     // প্রারম্ভিক লোড
     loadEmployees();
