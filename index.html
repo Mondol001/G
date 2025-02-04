@@ -49,6 +49,9 @@ const firebaseConfig = {
     const allowedEmails = ["mohammadiaqub@gmail.com", "user@example.com"];
 
     // Email and Password Login
+   
+    // ... (keep the existing Firebase config and initialization code)
+
     async function login() {
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
@@ -65,9 +68,18 @@ const firebaseConfig = {
         
         window.location.href = 'dashboard.html';
       } catch (error) {
-        document.getElementById('authError').textContent = error.message;
+        // Handle specific error cases
+        if (error.code === 'auth/wrong-password') {
+          document.getElementById('authError').textContent = "Incorrect password. Please try again.";
+        } else if (error.code === 'auth/user-not-found') {
+          document.getElementById('authError').textContent = "No account found with this email.";
+        } else {
+          document.getElementById('authError').textContent = error.message;
+        }
       }
     }
+
+    // ... (keep the rest of the Google login function)
 
     // Google Login
     async function googleLogin() {
