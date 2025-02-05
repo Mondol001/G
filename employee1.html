@@ -378,7 +378,7 @@
       }
     }
 
-    // মাসিক এন্ট্রি লোড করার ফাংশন
+    // মাসিক এন্ট্রি লোড করার ফাংশন (মোট লেট হিসাব সহ)
     async function loadMonthlyAttendance() {
       if (!employeeSelect.value) return;
       const month = parseInt(monthSelect.value);
@@ -397,6 +397,8 @@
         attendanceTableBody.innerHTML = '';
         let totalPresent = 0;
         let totalOvertime = 0;
+        let totalLate = 0;  // মোট লেট হিসাবের জন্য নতুন ভেরিয়েবল
+
         if (snapshot.empty) {
           attendanceTableBody.innerHTML = `<tr><td colspan="7" class="text-center">কোন এন্ট্রি নেই</td></tr>`;
         } else {
@@ -405,6 +407,7 @@
             const entryDate = data.date && data.date.toDate ? data.date.toDate() : new Date(data.date);
             if (data.status === 'present') totalPresent++;
             totalOvertime += data.overtime;
+            totalLate += data.late;  // প্রতিটি এন্ট্রি থেকে লেট যোগ করা হচ্ছে
             const row = `
               <tr>
                 <td>${entryDate.toLocaleDateString('bn-BD')}</td>
@@ -422,6 +425,7 @@
         resultDiv.innerHTML = `
           <h4>মোট উপস্থিতি: ${totalPresent} দিন</h4>
           <h4>মোট ওভারটাইম: ${totalOvertime} ঘণ্টা</h4>
+          <h4>মোট লেট: ${totalLate} মিনিট</h4>
         `;
       } catch (error) {
         console.error('মাস লোড করতে ত্রুটি:', error);
@@ -456,7 +460,7 @@
     // 'মাস লোড করুন' বাটন (মাস/বছর পরিবর্তনের জন্য)
     loadMonthBtn.addEventListener('click', loadMonthlyAttendance);
 
-    // calculateLate: এখন শুধু ইনটাইম থেকে বিলম্ব (মিনিট) হিসাব করবে
+    // calculateLate: ইন টাইম থেকে বিলম্ব (মিনিট) হিসাব করবে
     function calculateLate() {
       const inTimeVal = inTimeInput.value;
       if (!inTimeVal) {
