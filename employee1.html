@@ -378,24 +378,40 @@
     });
 
     // কর্মী লোড করার ফাংশন
-    async function loadEmployees() {
-      try {
-        const snapshot = await db.collection('employees').get();
-        // প্রথমে ড্রপডাউনে সব অপশন ক্লিয়ার করা
-        employeeSelect.innerHTML = '<option value="">কর্মী নির্বাচন করুন...</option>';
-        snapshot.forEach(doc => {
-          const employee = doc.data();
-          const option = document.createElement('option');
-          option.value = doc.id;
-          option.textContent = `${employee.name} (${employee.employeeId})`;
-          employeeSelect.appendChild(option);
-        });
-        // Select2 রিফ্রেশ
-        $('#employeeSelect').trigger('change');
-      } catch (error) {
-        console.error('কর্মী লোড করতে ত্রুটি:', error);
+    // কর্মী নির্বাচন ইভেন্ট (সমস্ত ইনপুট ও ফলাফল রিফ্রেশ করার জন্য)
+employeeSelect.addEventListener('change', async () => {
+  // প্রথমে ফর্মের সকল ইনপুট ও ফলাফল রিসেট করা
+  // উদাহরণস্বরূপ: তারিখ, ইনটাইম, আউটটাইম, ওভারটাইম, লেট, টেবিল, ফলাফল ইত্যাদি রিসেট
+  entryDateInput.value = new Date().toISOString().split('T')[0];
+  updateDefaultTimes();       // dutyType অনুযায়ী ইন ও আউট টাইম ডিফল্ট সেট
+  overtimeInput.value = "";
+  lateInput.value = "0.00";
+  
+  // টেবিল এবং ফলাফল অংশ খালি করা
+  attendanceTableBody.innerHTML = "";
+  resultDiv.innerHTML = "";
+
+  // নির্বাচিত কর্মীর নাম ও আইডি রিসেট করা
+  selectedEmployeeName.textContent = "নাম: ";
+  selectedEmployeeId.textContent = "";
+
+  // এখন, যদি কোনো কর্মী নির্বাচন করা থাকে, তাহলে তার তথ্য লোড করা
+  if (employeeSelect.value) {
+    try {
+      const doc = await db.collection('employees').doc(employeeSelect.value).get();
+      if (doc.exists) {
+        const data = doc.data();
+        selectedEmployeeName.textContent = data.name;
+        selectedEmployeeId.textContent = `আইডি: ${data.employeeId}`;
+        // কর্মী নির্বাচন করার সাথে সাথে মাসিক এন্ট্রি (attendance) রিফ্রেশ হবে
+        loadMonthlyAttendance();
       }
+    } catch (error) {
+      console.error('কর্মী তথ্য পড়তে সমস্যা:', error);
     }
+  }
+});
+
 
     // মাসিক এন্ট্রি লোড করার ফাংশন
     async function loadMonthlyAttendance() {
