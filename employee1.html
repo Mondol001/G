@@ -19,7 +19,7 @@
   
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
   
   <!-- jsPDF for PDF export -->
@@ -149,7 +149,7 @@
       </div>
     </div>
     
-    <!-- আজকের এন্ট্রি ফর্ম (ডিউটি টাইপ, ইন/আউট টাইম, ওভারটাইম, লেট) -->
+    <!-- আজকের এন্ট্রি ফর্ম -->
     <div class="daily-entry mb-4 no-print">
       <h2 class="mb-3">আজকের এন্ট্রি</h2>
       <div class="row g-3">
@@ -194,7 +194,7 @@
         </div>
         <!-- লেট (রিড-অনলি) -->
         <div class="col-md-2">
-          <label for="lateInput" class="form-label">লেট (ঘণ্টা):</label>
+          <label for="lateInput" class="form-label">লেট (মিনিট):</label>
           <input type="number" id="lateInput" class="form-control" readonly value="0">
         </div>
         <!-- এন্ট্রি সংরক্ষণ বাটন -->
@@ -206,7 +206,6 @@
     
     <!-- মাসিক ডাটা টেবিল এবং ফলাফল -->
     <div class="monthly-table">
-      <!-- এখানে টেবিল হেডারে আইডি, নাম, পদবি সহ তথ্য দেখানো হবে -->
       <h2 class="mb-3 no-print">মাসিক এন্ট্রি</h2>
       <div class="table-responsive">
         <table id="attendanceTable" class="table table-bordered table-hover">
@@ -434,7 +433,7 @@
       entryDateInput.value = new Date().toISOString().split('T')[0];
       updateDefaultTimes();
       overtimeInput.value = "";
-      lateInput.value = "0.00";
+      lateInput.value = "0";
       attendanceTableBody.innerHTML = "";
       resultDiv.innerHTML = "";
 
@@ -457,31 +456,36 @@
     // 'মাস লোড করুন' বাটন (মাস/বছর পরিবর্তনের জন্য)
     loadMonthBtn.addEventListener('click', loadMonthlyAttendance);
 
-    // calculateLate ফাংশন
+    // calculateLate: এখন শুধু ইনটাইম থেকে বিলম্ব (মিনিট) হিসাব করবে
     function calculateLate() {
       const inTimeVal = inTimeInput.value;
-      const outTimeVal = outTimeInput.value;
-      if (!inTimeVal || !outTimeVal) {
-        lateInput.value = "0.00";
+      if (!inTimeVal) {
+        lateInput.value = "0";
         return;
       }
       
-      const entryDate = new Date(entryDateInput.value || new Date().toISOString().split('T')[0]);
-      const inDateTime = new Date(entryDate);
-      const outDateTime = new Date(entryDate);
-      const [inHours, inMinutes] = inTimeVal.split(':').map(Number);
-      const [outHours, outMinutes] = outTimeVal.split(':').map(Number);
-      inDateTime.setHours(inHours, inMinutes);
-      outDateTime.setHours(outHours, outMinutes);
-      
-      if (outDateTime < inDateTime) {
-        outDateTime.setDate(outDateTime.getDate() + 1);
+      // প্রত্যাশিত ইন টাইম নির্ধারণ: দিনে 08:00, রাতে 20:00
+      let expectedTimeStr = "";
+      if (dutyTypeSelect.value === 'day') {
+        expectedTimeStr = "08:00";
+      } else if (dutyTypeSelect.value === 'night') {
+        expectedTimeStr = "20:00";
       }
       
-      const workedHours = (outDateTime - inDateTime) / (1000 * 60 * 60);
-      const expectedHours = dutyTypeSelect.value === 'day' ? 11 : 12;
-      const lateHours = expectedHours - workedHours;
-      lateInput.value = lateHours > 0 ? lateHours.toFixed(2) : "0.00";
+      // প্রত্যাশিত ও আসল ইন টাইমকে মিনিটে রূপান্তর করুন
+      const [expectedHours, expectedMinutes] = expectedTimeStr.split(':').map(Number);
+      const expectedTotalMinutes = expectedHours * 60 + expectedMinutes;
+      
+      const [actualHours, actualMinutes] = inTimeVal.split(':').map(Number);
+      const actualTotalMinutes = actualHours * 60 + actualMinutes;
+      
+      // বিলম্বে আসার মিনিট হিসাব
+      let lateMinutes = actualTotalMinutes - expectedTotalMinutes;
+      if (lateMinutes < 0) {
+        lateMinutes = 0;
+      }
+      
+      lateInput.value = lateMinutes;
     }
 
     inTimeInput.addEventListener('change', calculateLate);
@@ -572,11 +576,10 @@
       window.print();
     });
 
-    // পিডিএফ ডাউনলোড বাটন: যদি File System Access API পাওয়া যায় তবে ব্যবহারকারীকে পাথ নির্বাচন করতে বলবে, নাহলে ডিফল্ট ডাউনলোড
+    // পিডিএফ ডাউনলোড বাটন: File System Access API থাকলে পাথ নির্বাচন, নাহলে ডিফল্ট ডায়ালগ
     pdfBtn.addEventListener('click', async () => {
       if (window.showDirectoryPicker) {
         try {
-          // ব্যবহারকারীকে ডিরেক্টরি নির্বাচন করতে বলুন
           const directoryHandle = await window.showDirectoryPicker();
           const { jsPDF } = window.jspdf;
           const doc = new jsPDF();
@@ -593,7 +596,6 @@
           alert("ডাউনলোড পাথ নির্বাচন বা PDF সংরক্ষণ করতে ব্যর্থ হয়েছে");
         }
       } else {
-        // ফallback: Browser save dialog
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
         doc.html(document.querySelector('.container'), {
