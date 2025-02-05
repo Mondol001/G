@@ -167,62 +167,60 @@
       </div>
     </div>
     
-    <!-- আজকের এন্ট্রি ফর্ম (নতুন ইনপুট ফিল্ডসহ) -->
     <!-- আজকের এন্ট্রি ফর্ম (ডিউটি টাইপ ফিল্ড ইন টাইমের আগে) -->
-<div class="daily-entry mb-4 no-print">
-  <h2 class="mb-3">আজকের এন্ট্রি</h2>
-  <div class="row g-3">
-    <!-- তারিখ -->
-    <div class="col-md-3">
-      <label for="entryDate" class="form-label">তারিখ:</label>
-      <input type="date" id="entryDate" class="form-control">
-      <span id="dateError" class="error text-danger"></span>
+    <div class="daily-entry mb-4 no-print">
+      <h2 class="mb-3">আজকের এন্ট্রি</h2>
+      <div class="row g-3">
+        <!-- তারিখ -->
+        <div class="col-md-3">
+          <label for="entryDate" class="form-label">তারিখ:</label>
+          <input type="date" id="entryDate" class="form-control">
+          <span id="dateError" class="error text-danger"></span>
+        </div>
+        <!-- হাজিরা -->
+        <div class="col-md-3">
+          <label for="attendanceStatus" class="form-label">হাজিরা:</label>
+          <select id="attendanceStatus" class="form-select">
+            <option value="">নির্বাচন করুন</option>
+            <option value="present">উপস্থিত</option>
+            <option value="absent">অনুপস্থিত</option>
+          </select>
+          <span id="attendanceError" class="error text-danger"></span>
+        </div>
+        <!-- ডিউটি টাইপ (ইন টাইম এর আগে) -->
+        <div class="col-md-3">
+          <label for="dutyType" class="form-label">ডিউটি টাইপ:</label>
+          <select id="dutyType" class="form-select">
+            <option value="day">দিবা (১১ ঘণ্টা)</option>
+            <option value="night">রাত্রি (১২ ঘণ্টা)</option>
+          </select>
+        </div>
+        <!-- ইন টাইম -->
+        <div class="col-md-2">
+          <label for="inTime" class="form-label">ইন টাইম:</label>
+          <input type="time" id="inTime" class="form-control">
+        </div>
+        <!-- আউট টাইম -->
+        <div class="col-md-2">
+          <label for="outTime" class="form-label">আউট টাইম:</label>
+          <input type="time" id="outTime" class="form-control">
+        </div>
+        <!-- ওভারটাইম -->
+        <div class="col-md-2">
+          <label for="overtimeInput" class="form-label">ওভারটাইম (ঘণ্টা):</label>
+          <input type="number" id="overtimeInput" class="form-control" min="0" step="0.5" placeholder="0">
+        </div>
+        <!-- লেট (রিড-অনলি) -->
+        <div class="col-md-2">
+          <label for="lateInput" class="form-label">লেট (ঘণ্টা):</label>
+          <input type="number" id="lateInput" class="form-control" readonly value="0">
+        </div>
+        <!-- এন্ট্রি সংরক্ষণ বাটন -->
+        <div class="col-12">
+          <button id="saveEntry" class="btn btn-primary w-100">এন্ট্রি সংরক্ষণ করুন</button>
+        </div>
+      </div>
     </div>
-    <!-- হাজিরা -->
-    <div class="col-md-3">
-      <label for="attendanceStatus" class="form-label">হাজিরা:</label>
-      <select id="attendanceStatus" class="form-select">
-        <option value="">নির্বাচন করুন</option>
-        <option value="present">উপস্থিত</option>
-        <option value="absent">অনুপস্থিত</option>
-      </select>
-      <span id="attendanceError" class="error text-danger"></span>
-    </div>
-    <!-- ডিউটি টাইপ (ইন টাইম এর আগে রাখা হলো) -->
-    <div class="col-md-3">
-      <label for="dutyType" class="form-label">ডিউটি টাইপ:</label>
-      <select id="dutyType" class="form-select">
-        <option value="day">দিবা (১১ ঘণ্টা)</option>
-        <option value="night">রাত্রি (১২ ঘণ্টা)</option>
-      </select>
-    </div>
-    <!-- ইন টাইম -->
-    <div class="col-md-2">
-      <label for="inTime" class="form-label">ইন টাইম:</label>
-      <input type="time" id="inTime" class="form-control">
-    </div>
-    <!-- আউট টাইম -->
-    <div class="col-md-2">
-      <label for="outTime" class="form-label">আউট টাইম:</label>
-      <input type="time" id="outTime" class="form-control">
-    </div>
-    <!-- ওভারটাইম -->
-    <div class="col-md-2">
-      <label for="overtimeInput" class="form-label">ওভারটাইম (ঘণ্টা):</label>
-      <input type="number" id="overtimeInput" class="form-control" min="0" step="0.5" placeholder="0">
-    </div>
-    <!-- লেট (রিড-অনলি) -->
-    <div class="col-md-2">
-      <label for="lateInput" class="form-label">লেট (ঘণ্টা):</label>
-      <input type="number" id="lateInput" class="form-control" readonly value="0">
-    </div>
-    <!-- এন্ট্রি সংরক্ষণ বাটন -->
-    <div class="col-12">
-      <button id="saveEntry" class="btn btn-primary w-100">এন্ট্রি সংরক্ষণ করুন</button>
-    </div>
-  </div>
-</div>
-
     
     <!-- মাসিক ডাটা টেবিল এবং ফলাফল (নতুন কলামসহ) -->
     <div class="monthly-table">
@@ -297,17 +295,16 @@
   
   <script>
     // Firebase কনফিগারেশন (আপনার প্রোজেক্ট অনুযায়ী পরিবর্তন করুন)
-    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyD-WhTe1Kqx4IRaeg_w9s-diHKPE6i6uaE",
-  authDomain: "data-entry-app-3923a.firebaseapp.com",
-  databaseURL: "https://data-entry-app-3923a-default-rtdb.firebaseio.com",
-  projectId: "data-entry-app-3923a",
-  storageBucket: "data-entry-app-3923a.firebasestorage.app",
-  messagingSenderId: "638964410595",
-  appId: "1:638964410595:web:80c8ffa7fe8fc1a48cbdd6",
-  measurementId: "G-01NQ8H9KB7"
-};
+    const firebaseConfig = {
+      apiKey: "AIzaSyD-WhTe1Kqx4IRaeg_w9s-diHKPE6i6uaE",
+      authDomain: "data-entry-app-3923a.firebaseapp.com",
+      databaseURL: "https://data-entry-app-3923a-default-rtdb.firebaseio.com",
+      projectId: "data-entry-app-3923a",
+      storageBucket: "data-entry-app-3923a.firebasestorage.app",
+      messagingSenderId: "638964410595",
+      appId: "1:638964410595:web:80c8ffa7fe8fc1a48cbdd6",
+      measurementId: "G-01NQ8H9KB7"
+    };
 
     // Firebase ইনিশিয়ালাইজেশন
     firebase.initializeApp(firebaseConfig);
@@ -334,30 +331,31 @@ const firebaseConfig = {
     const resultDiv = document.getElementById('result');
     const printBtn = document.getElementById('printBtn');
     const pdfBtn = document.getElementById('pdfBtn');
+
+    // dutyType অনুযায়ী ইন ও আউট টাইমের ডিফল্ট মান সেট করার ফাংশন
+    function updateDefaultTimes() {
+      if (dutyTypeSelect.value === 'day') {
+        // দিনে: ইন টাইম 08:00, আউট টাইম 20:00
+        inTimeInput.value = "08:00";
+        outTimeInput.value = "20:00";
+      } else if (dutyTypeSelect.value === 'night') {
+        // রাতে: ইন টাইম 20:00, আউট টাইম 08:00
+        inTimeInput.value = "20:00";
+        outTimeInput.value = "08:00";
+      }
+    }
     
-   // ফাংশন: dutyType অনুযায়ী ইন ও আউট টাইমের ডিফল্ট মান সেট করা
-function updateDefaultTimes() {
-  if (dutyTypeSelect.value === 'day') {
-    // দিনে: ইন টাইম 08:00 (সকাল), আউট টাইম 20:00 (৮:০০ পিএম)
-    inTimeInput.value = "08:00";
-    outTimeInput.value = "20:00";
-  } else if (dutyTypeSelect.value === 'night') {
-    // রাতে: ইন টাইম 20:00 (৮:০০ পিএম), আউট টাইম 08:00 (সকাল)
-    inTimeInput.value = "20:00";
-    outTimeInput.value = "08:00";
-  }
-}
+    // পেজ লোড হবার সময় ডিফল্ট টাইম সেট করা
+    document.addEventListener("DOMContentLoaded", function() {
+      updateDefaultTimes();
+      entryDateInput.value = new Date().toISOString().split('T')[0];
+    });
 
-// পেজ লোড হবার সময় ডিফল্ট টাইম সেট করা
-document.addEventListener("DOMContentLoaded", function() {
-  updateDefaultTimes();
-});
-
-// dutyType পরিবর্তনের সাথে সাথে ডিফল্ট টাইম আপডেট করা
-dutyTypeSelect.addEventListener('change', updateDefaultTimes);
-
-    // ইনপুট ফিল্ডে ডিফল্ট তারিখ (আজকের তারিখ) সেট করা
-    entryDateInput.value = new Date().toISOString().split('T')[0];
+    // dutyType পরিবর্তনের সাথে সাথে ডিফল্ট টাইম আপডেট
+    dutyTypeSelect.addEventListener('change', function() {
+      updateDefaultTimes();
+      calculateLate();  // dutyType পরিবর্তনের সাথে লেট হিসাবও হোক
+    });
 
     // বর্তমান মাস ও বছর ডিফল্ট হিসেবে সেট করা
     const currentDate = new Date();
@@ -379,34 +377,25 @@ dutyTypeSelect.addEventListener('change', updateDefaultTimes);
       });
     });
 
-
-
     // কর্মী লোড করার ফাংশন
     async function loadEmployees() {
       try {
         const snapshot = await db.collection('employees').get();
-        employeeSelect.addEventListener('change', async () => {
-  if (employeeSelect.value) {
-    try {
-      const doc = await db.collection('employees').doc(employeeSelect.value).get();
-      if (doc.exists) {
-        const data = doc.data();
-        selectedEmployeeName.textContent = data.name;
-        selectedEmployeeId.textContent = `আইডি: ${data.employeeId}`;
-        // কর্মী নির্বাচন করার সাথে সাথে মাসিক এন্ট্রি লোড হবে
-        loadMonthlyAttendance();
+        // প্রথমে ড্রপডাউনে সব অপশন ক্লিয়ার করা
+        employeeSelect.innerHTML = '<option value="">কর্মী নির্বাচন করুন...</option>';
+        snapshot.forEach(doc => {
+          const employee = doc.data();
+          const option = document.createElement('option');
+          option.value = doc.id;
+          option.textContent = `${employee.name} (${employee.employeeId})`;
+          employeeSelect.appendChild(option);
+        });
+        // Select2 রিফ্রেশ
+        $('#employeeSelect').trigger('change');
+      } catch (error) {
+        console.error('কর্মী লোড করতে ত্রুটি:', error);
       }
-    } catch (error) {
-      console.error('কর্মী তথ্য পড়তে সমস্যা:', error);
     }
-  } else {
-    selectedEmployeeName.textContent = 'নাম: ';
-    selectedEmployeeId.textContent = '';
-    attendanceTableBody.innerHTML = '';
-    resultDiv.innerHTML = '';
-  }
-});
-
 
     // মাসিক এন্ট্রি লোড করার ফাংশন
     async function loadMonthlyAttendance() {
@@ -449,7 +438,7 @@ dutyTypeSelect.addEventListener('change', updateDefaultTimes);
             attendanceTableBody.innerHTML += row;
           });
         }
-        // ফলাফল (হিসাব)
+        // হিসাব ফলাফল দেখানো
         resultDiv.innerHTML = `
           <h4>মোট উপস্থিতি: ${totalPresent} দিন</h4>
           <h4>মোট ওভারটাইম: ${totalOvertime} ঘণ্টা</h4>
@@ -459,15 +448,19 @@ dutyTypeSelect.addEventListener('change', updateDefaultTimes);
       }
     }
 
-    // কর্মী নির্বাচন ইভেন্ট
+    // কর্মী নির্বাচন ইভেন্ট (একবার সংযুক্ত করা হয়েছে)
     employeeSelect.addEventListener('change', async () => {
       if (employeeSelect.value) {
-        const doc = await db.collection('employees').doc(employeeSelect.value).get();
-        if (doc.exists) {
-          const data = doc.data();
-          selectedEmployeeName.textContent = data.name;
-          selectedEmployeeId.textContent = `আইডি: ${data.employeeId}`;
-          loadMonthlyAttendance();
+        try {
+          const doc = await db.collection('employees').doc(employeeSelect.value).get();
+          if (doc.exists) {
+            const data = doc.data();
+            selectedEmployeeName.textContent = data.name;
+            selectedEmployeeId.textContent = `আইডি: ${data.employeeId}`;
+            loadMonthlyAttendance();
+          }
+        } catch (error) {
+          console.error('কর্মী তথ্য পড়তে সমস্যা:', error);
         }
       } else {
         selectedEmployeeName.textContent = 'নাম: ';
@@ -480,68 +473,48 @@ dutyTypeSelect.addEventListener('change', updateDefaultTimes);
     // নির্বাচন বাতিল করার বাটন
     clearSelectionBtn.addEventListener('click', () => {
       employeeSelect.value = '';
-      $('#employeeSelect').trigger('change'); // Select2 update
+      $('#employeeSelect').trigger('change');
       selectedEmployeeName.textContent = 'নাম: ';
       selectedEmployeeId.textContent = '';
       attendanceTableBody.innerHTML = '';
       resultDiv.innerHTML = '';
     });
 
-    // 'মাস লোড করুন' বাটন
+    // 'মাস লোড করুন' বাটন (মাস/বছর পরিবর্তনের জন্য)
     loadMonthBtn.addEventListener('click', loadMonthlyAttendance);
 
-    // ইন-আউট টাইম থেকে লেট হিসাবের ফাংশন
+    // calculateLate ফাংশন (শুধুমাত্র একবার সংজ্ঞায়িত)
     function calculateLate() {
-  const inTimeVal = inTimeInput.value;
-  const outTimeVal = outTimeInput.value;
-  if (!inTimeVal || !outTimeVal) {
-    lateInput.value = "0.00";
-    return;
-  }
-  
-  // এন্ট্রি ডেট থেকে একটি Date অবজেক্ট তৈরি (যদি ডেট না থাকে তাহলে আজকের তারিখ নেওয়া হবে)
-  const entryDate = new Date(entryDateInput.value || new Date().toISOString().split('T')[0]);
-  
-  // ইন টাইম এবং আউট টাইমের জন্য Date অবজেক্ট তৈরি করা
-  const inDateTime = new Date(entryDate);
-  const outDateTime = new Date(entryDate);
-  const [inHours, inMinutes] = inTimeVal.split(':').map(Number);
-  const [outHours, outMinutes] = outTimeVal.split(':').map(Number);
-  inDateTime.setHours(inHours, inMinutes);
-  outDateTime.setHours(outHours, outMinutes);
-  
-  // যদি আউটটাইম ইনটাইমের পূর্বে থাকে (মধ্যরাত পার), তাহলে ১ দিন যোগ করুন
-  if (outDateTime < inDateTime) {
-    outDateTime.setDate(outDateTime.getDate() + 1);
-  }
-  
-  // মোট কাজের ঘণ্টা হিসাব করা
-  const workedHours = (outDateTime - inDateTime) / (1000 * 60 * 60);
-  
-  // প্রত্যাশিত ঘণ্টা: দিবা = ১১ ঘণ্টা, রাত্রি = ১২ ঘণ্টা
-  const expectedHours = dutyTypeSelect.value === 'day' ? 11 : 12;
-  
-  // যদি কর্মী প্রত্যাশিত সময়ের কম কাজ করে, তাহলে সেই পার্থক্য লেট হিসেবে দেখানো হবে
-  const lateHours = expectedHours - workedHours;
-  
-  // যদি পার্থক্য ইতিবাচক (অর্থাৎ কাজ কম হয়েছে) তাহলে সেটাই লেট, না হলে ০ দেখাবে
-  lateInput.value = lateHours > 0 ? lateHours.toFixed(2) : "0.00";
-}
-
-      // ক্রস-মিডনাইট হ্যান্ডেল করা
+      const inTimeVal = inTimeInput.value;
+      const outTimeVal = outTimeInput.value;
+      if (!inTimeVal || !outTimeVal) {
+        lateInput.value = "0.00";
+        return;
+      }
+      
+      const entryDate = new Date(entryDateInput.value || new Date().toISOString().split('T')[0]);
+      const inDateTime = new Date(entryDate);
+      const outDateTime = new Date(entryDate);
+      const [inHours, inMinutes] = inTimeVal.split(':').map(Number);
+      const [outHours, outMinutes] = outTimeVal.split(':').map(Number);
+      inDateTime.setHours(inHours, inMinutes);
+      outDateTime.setHours(outHours, outMinutes);
+      
+      // যদি আউটটাইম ইনটাইমের পূর্বে থাকে (মধ্যরাত পার), তাহলে ১ দিন যোগ করুন
       if (outDateTime < inDateTime) {
         outDateTime.setDate(outDateTime.getDate() + 1);
       }
+      
       const workedHours = (outDateTime - inDateTime) / (1000 * 60 * 60);
       const expectedHours = dutyTypeSelect.value === 'day' ? 11 : 12;
-      const lateHours = Math.max(0, (expectedHours - workedHours).toFixed(2));
-      lateInput.value = lateHours;
+      const lateHours = expectedHours - workedHours;
+      lateInput.value = lateHours > 0 ? lateHours.toFixed(2) : "0.00";
     }
 
-    // ইনটাইম, আউটটাইম ও ডিউটি টাইপ পরিবর্তনের সাথে লেট পুনঃহিসাব
+    // ইনটাইম, আউটটাইম, dutyType ও entryDate পরিবর্তনের সাথে লেট হিসাব
     inTimeInput.addEventListener('change', calculateLate);
     outTimeInput.addEventListener('change', calculateLate);
-    dutyTypeSelect.addEventListener('change', calculateLate);
+    entryDateInput.addEventListener('change', calculateLate);
 
     // নতুন কর্মী ফর্ম সাবমিশন
     document.getElementById('newEmployeeForm').addEventListener('submit', async (e) => {
