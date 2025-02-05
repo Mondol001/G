@@ -48,16 +48,21 @@
     }
     
     /* হেডার সেকশন */
-    .header-section {
-      border-bottom: 2px solid rgba(255,255,255,0.6);
-      padding-bottom: 20px;
-      margin-bottom: 30px;
-      text-shadow: 1px 1px 5px rgba(0,0,0,0.3);
-    }
-    .header-section h1 {
-      color: #fff;
-      font-weight: 700;
-    }
+    <style>
+  /* পূর্বের স্টাইলের উপর ওভাররাইড করার জন্য */
+  .header-section h1 {
+    color: #000;           /* কালো রঙ */
+    font-size: 3rem;       /* বড় আকারে */
+    font-weight: bold;     /* মোটা ফন্ট */
+    text-shadow: none;     /* যদি পূর্বে টেক্সট শ্যাডো থাকে তা সরিয়ে দিতে */
+  }
+  
+  /* আইকনের রঙও নিশ্চিত করতে */
+  .header-section h1 i {
+    color: #000;
+  }
+</style>
+
 
     /* কর্মী নির্বাচন সেকশন */
     .employee-selector {
