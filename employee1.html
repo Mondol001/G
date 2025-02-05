@@ -379,24 +379,34 @@ dutyTypeSelect.addEventListener('change', updateDefaultTimes);
       });
     });
 
+
+
     // কর্মী লোড করার ফাংশন
     async function loadEmployees() {
       try {
         const snapshot = await db.collection('employees').get();
-        employeeSelect.innerHTML = '<option value="">কর্মী নির্বাচন করুন...</option>';
-        snapshot.forEach(doc => {
-          const employee = doc.data();
-          const option = document.createElement('option');
-          option.value = doc.id;
-          option.textContent = `${employee.name} (${employee.employeeId})`;
-          employeeSelect.appendChild(option);
-        });
-        // Refresh Select2
-        $('#employeeSelect').trigger('change');
-      } catch (error) {
-        console.error('কর্মী লোড করতে ত্রুটি:', error);
+        employeeSelect.addEventListener('change', async () => {
+  if (employeeSelect.value) {
+    try {
+      const doc = await db.collection('employees').doc(employeeSelect.value).get();
+      if (doc.exists) {
+        const data = doc.data();
+        selectedEmployeeName.textContent = data.name;
+        selectedEmployeeId.textContent = `আইডি: ${data.employeeId}`;
+        // কর্মী নির্বাচন করার সাথে সাথে মাসিক এন্ট্রি লোড হবে
+        loadMonthlyAttendance();
       }
+    } catch (error) {
+      console.error('কর্মী তথ্য পড়তে সমস্যা:', error);
     }
+  } else {
+    selectedEmployeeName.textContent = 'নাম: ';
+    selectedEmployeeId.textContent = '';
+    attendanceTableBody.innerHTML = '';
+    resultDiv.innerHTML = '';
+  }
+});
+
 
     // মাসিক এন্ট্রি লোড করার ফাংশন
     async function loadMonthlyAttendance() {
@@ -482,19 +492,41 @@ dutyTypeSelect.addEventListener('change', updateDefaultTimes);
 
     // ইন-আউট টাইম থেকে লেট হিসাবের ফাংশন
     function calculateLate() {
-      const inTimeVal = inTimeInput.value;
-      const outTimeVal = outTimeInput.value;
-      if (!inTimeVal || !outTimeVal) {
-        lateInput.value = 0;
-        return;
-      }
-      const entryDate = new Date(entryDateInput.value || new Date().toISOString().split('T')[0]);
-      const inDateTime = new Date(entryDate);
-      const outDateTime = new Date(entryDate);
-      const [inHours, inMinutes] = inTimeVal.split(':').map(Number);
-      const [outHours, outMinutes] = outTimeVal.split(':').map(Number);
-      inDateTime.setHours(inHours, inMinutes);
-      outDateTime.setHours(outHours, outMinutes);
+  const inTimeVal = inTimeInput.value;
+  const outTimeVal = outTimeInput.value;
+  if (!inTimeVal || !outTimeVal) {
+    lateInput.value = "0.00";
+    return;
+  }
+  
+  // এন্ট্রি ডেট থেকে একটি Date অবজেক্ট তৈরি (যদি ডেট না থাকে তাহলে আজকের তারিখ নেওয়া হবে)
+  const entryDate = new Date(entryDateInput.value || new Date().toISOString().split('T')[0]);
+  
+  // ইন টাইম এবং আউট টাইমের জন্য Date অবজেক্ট তৈরি করা
+  const inDateTime = new Date(entryDate);
+  const outDateTime = new Date(entryDate);
+  const [inHours, inMinutes] = inTimeVal.split(':').map(Number);
+  const [outHours, outMinutes] = outTimeVal.split(':').map(Number);
+  inDateTime.setHours(inHours, inMinutes);
+  outDateTime.setHours(outHours, outMinutes);
+  
+  // যদি আউটটাইম ইনটাইমের পূর্বে থাকে (মধ্যরাত পার), তাহলে ১ দিন যোগ করুন
+  if (outDateTime < inDateTime) {
+    outDateTime.setDate(outDateTime.getDate() + 1);
+  }
+  
+  // মোট কাজের ঘণ্টা হিসাব করা
+  const workedHours = (outDateTime - inDateTime) / (1000 * 60 * 60);
+  
+  // প্রত্যাশিত ঘণ্টা: দিবা = ১১ ঘণ্টা, রাত্রি = ১২ ঘণ্টা
+  const expectedHours = dutyTypeSelect.value === 'day' ? 11 : 12;
+  
+  // যদি কর্মী প্রত্যাশিত সময়ের কম কাজ করে, তাহলে সেই পার্থক্য লেট হিসেবে দেখানো হবে
+  const lateHours = expectedHours - workedHours;
+  
+  // যদি পার্থক্য ইতিবাচক (অর্থাৎ কাজ কম হয়েছে) তাহলে সেটাই লেট, না হলে ০ দেখাবে
+  lateInput.value = lateHours > 0 ? lateHours.toFixed(2) : "0.00";
+}
 
       // ক্রস-মিডনাইট হ্যান্ডেল করা
       if (outDateTime < inDateTime) {
