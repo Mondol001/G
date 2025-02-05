@@ -123,7 +123,7 @@
               <div class="col-md-6">
                 <h4 class="card-title">
                   <span id="selectedEmployeeName">নাম: </span>
-                  <span class="badge bg-primary" id="selectedEmployeeIdDisplay"></span>
+                  <span class="badge bg-primary" id="selectedEmployeeId"></span>
                 </h4>
               </div>
               <div class="col-md-6 text-end">
@@ -378,34 +378,24 @@
     });
 
     // কর্মী লোড করার ফাংশন
-    // jQuery ব্যবহার করে Select2 এর চেঞ্জ ইভেন্ট হ্যান্ডেল করুন
-$('#employeeSelect').on('change', async function() {
-  const selectedEmployeeId = $(this).val();
-  
-  // ফর্ম ও ফলাফল রিসেট
-  entryDateInput.value = new Date().toISOString().split('T')[0];
-  updateDefaultTimes();
-  overtimeInput.value = "";
-  lateInput.value = "0.00";
-  attendanceTableBody.innerHTML = "";
-  resultDiv.innerHTML = "";
-  selectedEmployeeName.textContent = "নাম: ";
-  selectedEmployeeIdDisplay.textContent = "";
-
-  if (selectedEmployeeId) {
-    try {
-      const doc = await db.collection('employees').doc(selectedEmployeeId).get();
-      if (doc.exists) {
-        const data = doc.data();
-        selectedEmployeeName.textContent = data.name;
-        selectedEmployeeIdDisplay.textContent = `আইডি: ${data.employeeId}`;
-        loadMonthlyAttendance();
+    async function loadEmployees() {
+      try {
+        const snapshot = await db.collection('employees').get();
+        // ড্রপডাউন ক্লিয়ার করা
+        employeeSelect.innerHTML = '<option value="">কর্মী নির্বাচন করুন...</option>';
+        snapshot.forEach(doc => {
+          const employee = doc.data();
+          const option = document.createElement('option');
+          option.value = doc.id;
+          option.textContent = `${employee.name} (${employee.employeeId})`;
+          employeeSelect.appendChild(option);
+        });
+        // Select2 রিফ্রেশ
+        $('#employeeSelect').trigger('change');
+      } catch (error) {
+        console.error('কর্মী লোড করতে ত্রুটি:', error);
       }
-    } catch (error) {
-      console.error('কর্মী তথ্য পড়তে সমস্যা:', error);
     }
-  }
-});
 
     // মাসিক এন্ট্রি লোড করার ফাংশন
     async function loadMonthlyAttendance() {
@@ -459,39 +449,42 @@ $('#employeeSelect').on('change', async function() {
 
     // কর্মী নির্বাচন ইভেন্ট (একবার সংযুক্ত)
     employeeSelect.addEventListener('change', async () => {
-      // ফর্ম ও ফলাফল রিসেট
-      entryDateInput.value = new Date().toISOString().split('T')[0];
-      updateDefaultTimes();
-      overtimeInput.value = "";
-      lateInput.value = "0.00";
-      attendanceTableBody.innerHTML = "";
-      resultDiv.innerHTML = "";
-      selectedEmployeeName.textContent = "নাম: ";
-      selectedEmployeeId.textContent = "";
+  // পুরানো তথ্য রিসেট করা
+  entryDateInput.value = new Date().toISOString().split('T')[0];
+  updateDefaultTimes();
+  overtimeInput.value = "";
+  lateInput.value = "0.00";
+  attendanceTableBody.innerHTML = "";
+  resultDiv.innerHTML = "";
+  selectedEmployeeName.textContent = "নাম: ";
+  selectedEmployeeId.textContent = "";
 
-      if (employeeSelect.value) {
-        try {
-          const doc = await db.collection('employees').doc(employeeSelect.value).get();
-          if (doc.exists) {
-            const data = doc.data();
-            selectedEmployeeName.textContent = data.name;
-            selectedEmployeeId.textContent = `আইডি: ${data.employeeId}`;
-            loadMonthlyAttendance();
-          }
-        } catch (error) {
-          console.error('কর্মী তথ্য পড়তে সমস্যা:', error);
-        }
+  if (employeeSelect.value) {
+    try {
+      const doc = await db.collection('employees').doc(employeeSelect.value).get();
+      if (doc.exists) {
+        const data = doc.data();
+        selectedEmployeeName.textContent = data.name;
+        selectedEmployeeId.textContent = `আইডি: ${data.employeeId}`;
+        // কর্মী সিলেক্ট হওয়ার সাথে সাথে মাসিক এন্ট্রি লোড করা হবে
+        loadMonthlyAttendance();
       }
-    });
+    } catch (error) {
+      console.error('কর্মী তথ্য পড়তে সমস্যা:', error);
+    }
+  }
+});
+
 
     // নির্বাচন বাতিল করার বাটন
     clearSelectionBtn.addEventListener('click', () => {
-  $('#employeeSelect').val('').trigger('change');
-  selectedEmployeeName.textContent = 'নাম: ';
-  selectedEmployeeIdDisplay.textContent = '';
-  attendanceTableBody.innerHTML = '';
-  resultDiv.innerHTML = '';
-});
+      employeeSelect.value = '';
+      $('#employeeSelect').trigger('change');
+      selectedEmployeeName.textContent = 'নাম: ';
+      selectedEmployeeId.textContent = '';
+      attendanceTableBody.innerHTML = '';
+      resultDiv.innerHTML = '';
+    });
 
     // 'মাস লোড করুন' বাটন (মাস/বছর পরিবর্তনের জন্য)
     loadMonthBtn.addEventListener('click', loadMonthlyAttendance);
