@@ -168,53 +168,61 @@
     </div>
     
     <!-- আজকের এন্ট্রি ফর্ম (নতুন ইনপুট ফিল্ডসহ) -->
-    <div class="daily-entry mb-4 no-print">
-      <h2 class="mb-3">আজকের এন্ট্রি</h2>
-      <div class="row g-3">
-        <div class="col-md-3">
-          <label for="entryDate" class="form-label">তারিখ:</label>
-          <input type="date" id="entryDate" class="form-control">
-          <span id="dateError" class="error text-danger"></span>
-        </div>
-        <div class="col-md-3">
-          <label for="attendanceStatus" class="form-label">হাজিরা:</label>
-          <select id="attendanceStatus" class="form-select">
-            <option value="">নির্বাচন করুন</option>
-            <option value="present">উপস্থিত</option>
-            <option value="absent">অনুপস্থিত</option>
-          </select>
-          <span id="attendanceError" class="error text-danger"></span>
-        </div>
-        <div class="col-md-2">
-          <label for="inTime" class="form-label">ইন টাইম:</label>
-          <!-- ডিফল্ট মান হিসেবে 08:00 সেট করা হলো -->
-      <input type="time" id="inTime" class="form-control" value="08:00">
-        </div>
-        <div class="col-md-2">
-          <label for="outTime" class="form-label">আউট টাইম:</label>
-          <!-- ডিফল্ট মান হিসেবে 08:00 সেট করা হলো -->
-      <input type="time" id="outTime" class="form-control" value="08:00">
-        </div>
-        <div class="col-md-2">
-          <label for="dutyType" class="form-label">ডিউটি টাইপ:</label>
-          <select id="dutyType" class="form-select">
-            <option value="day">দিবা (১১ ঘণ্টা)</option>
-            <option value="night">রাত্রি (১২ ঘণ্টা)</option>
-          </select>
-        </div>
-        <div class="col-md-2">
-          <label for="overtimeInput" class="form-label">ওভারটাইম (ঘণ্টা):</label>
-          <input type="number" id="overtimeInput" class="form-control" min="0" step="0.5" placeholder="0">
-        </div>
-        <div class="col-md-2">
-          <label for="lateInput" class="form-label">লেট (ঘণ্টা):</label>
-          <input type="number" id="lateInput" class="form-control" readonly value="0">
-        </div>
-        <div class="col-12">
-          <button id="saveEntry" class="btn btn-primary w-100">এন্ট্রি সংরক্ষণ করুন</button>
-        </div>
-      </div>
+    <!-- আজকের এন্ট্রি ফর্ম (ডিউটি টাইপ ফিল্ড ইন টাইমের আগে) -->
+<div class="daily-entry mb-4 no-print">
+  <h2 class="mb-3">আজকের এন্ট্রি</h2>
+  <div class="row g-3">
+    <!-- তারিখ -->
+    <div class="col-md-3">
+      <label for="entryDate" class="form-label">তারিখ:</label>
+      <input type="date" id="entryDate" class="form-control">
+      <span id="dateError" class="error text-danger"></span>
     </div>
+    <!-- হাজিরা -->
+    <div class="col-md-3">
+      <label for="attendanceStatus" class="form-label">হাজিরা:</label>
+      <select id="attendanceStatus" class="form-select">
+        <option value="">নির্বাচন করুন</option>
+        <option value="present">উপস্থিত</option>
+        <option value="absent">অনুপস্থিত</option>
+      </select>
+      <span id="attendanceError" class="error text-danger"></span>
+    </div>
+    <!-- ডিউটি টাইপ (ইন টাইম এর আগে রাখা হলো) -->
+    <div class="col-md-3">
+      <label for="dutyType" class="form-label">ডিউটি টাইপ:</label>
+      <select id="dutyType" class="form-select">
+        <option value="day">দিবা (১১ ঘণ্টা)</option>
+        <option value="night">রাত্রি (১২ ঘণ্টা)</option>
+      </select>
+    </div>
+    <!-- ইন টাইম -->
+    <div class="col-md-2">
+      <label for="inTime" class="form-label">ইন টাইম:</label>
+      <input type="time" id="inTime" class="form-control">
+    </div>
+    <!-- আউট টাইম -->
+    <div class="col-md-2">
+      <label for="outTime" class="form-label">আউট টাইম:</label>
+      <input type="time" id="outTime" class="form-control">
+    </div>
+    <!-- ওভারটাইম -->
+    <div class="col-md-2">
+      <label for="overtimeInput" class="form-label">ওভারটাইম (ঘণ্টা):</label>
+      <input type="number" id="overtimeInput" class="form-control" min="0" step="0.5" placeholder="0">
+    </div>
+    <!-- লেট (রিড-অনলি) -->
+    <div class="col-md-2">
+      <label for="lateInput" class="form-label">লেট (ঘণ্টা):</label>
+      <input type="number" id="lateInput" class="form-control" readonly value="0">
+    </div>
+    <!-- এন্ট্রি সংরক্ষণ বাটন -->
+    <div class="col-12">
+      <button id="saveEntry" class="btn btn-primary w-100">এন্ট্রি সংরক্ষণ করুন</button>
+    </div>
+  </div>
+</div>
+
     
     <!-- মাসিক ডাটা টেবিল এবং ফলাফল (নতুন কলামসহ) -->
     <div class="monthly-table">
@@ -326,6 +334,30 @@ const firebaseConfig = {
     const resultDiv = document.getElementById('result');
     const printBtn = document.getElementById('printBtn');
     const pdfBtn = document.getElementById('pdfBtn');
+const dutyTypeSelect = document.getElementById('dutyType');
+const inTimeInput = document.getElementById('inTime');
+const outTimeInput = document.getElementById('outTime');
+
+   // ফাংশন: dutyType অনুযায়ী ইন ও আউট টাইমের ডিফল্ট মান সেট করা
+function updateDefaultTimes() {
+  if (dutyTypeSelect.value === 'day') {
+    // দিনে: ইন টাইম 08:00 (সকাল), আউট টাইম 20:00 (৮:০০ পিএম)
+    inTimeInput.value = "08:00";
+    outTimeInput.value = "20:00";
+  } else if (dutyTypeSelect.value === 'night') {
+    // রাতে: ইন টাইম 20:00 (৮:০০ পিএম), আউট টাইম 08:00 (সকাল)
+    inTimeInput.value = "20:00";
+    outTimeInput.value = "08:00";
+  }
+}
+
+// পেজ লোড হবার সময় ডিফল্ট টাইম সেট করা
+document.addEventListener("DOMContentLoaded", function() {
+  updateDefaultTimes();
+});
+
+// dutyType পরিবর্তনের সাথে সাথে ডিফল্ট টাইম আপডেট করা
+dutyTypeSelect.addEventListener('change', updateDefaultTimes);
 
     // ইনপুট ফিল্ডে ডিফল্ট তারিখ (আজকের তারিখ) সেট করা
     entryDateInput.value = new Date().toISOString().split('T')[0];
