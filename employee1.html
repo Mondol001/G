@@ -345,7 +345,7 @@
       }
     }
     
-    // পেজ লোড হবার সময় ডিফল্ট টাইম সেট করা
+    // পেজ লোড হবার সময় ডিফল্ট টাইম ও তারিখ সেট করা
     document.addEventListener("DOMContentLoaded", function() {
       updateDefaultTimes();
       entryDateInput.value = new Date().toISOString().split('T')[0];
@@ -378,40 +378,24 @@
     });
 
     // কর্মী লোড করার ফাংশন
-    // কর্মী নির্বাচন ইভেন্ট (সমস্ত ইনপুট ও ফলাফল রিফ্রেশ করার জন্য)
-employeeSelect.addEventListener('change', async () => {
-  // প্রথমে ফর্মের সকল ইনপুট ও ফলাফল রিসেট করা
-  // উদাহরণস্বরূপ: তারিখ, ইনটাইম, আউটটাইম, ওভারটাইম, লেট, টেবিল, ফলাফল ইত্যাদি রিসেট
-  entryDateInput.value = new Date().toISOString().split('T')[0];
-  updateDefaultTimes();       // dutyType অনুযায়ী ইন ও আউট টাইম ডিফল্ট সেট
-  overtimeInput.value = "";
-  lateInput.value = "0.00";
-  
-  // টেবিল এবং ফলাফল অংশ খালি করা
-  attendanceTableBody.innerHTML = "";
-  resultDiv.innerHTML = "";
-
-  // নির্বাচিত কর্মীর নাম ও আইডি রিসেট করা
-  selectedEmployeeName.textContent = "নাম: ";
-  selectedEmployeeId.textContent = "";
-
-  // এখন, যদি কোনো কর্মী নির্বাচন করা থাকে, তাহলে তার তথ্য লোড করা
-  if (employeeSelect.value) {
-    try {
-      const doc = await db.collection('employees').doc(employeeSelect.value).get();
-      if (doc.exists) {
-        const data = doc.data();
-        selectedEmployeeName.textContent = data.name;
-        selectedEmployeeId.textContent = `আইডি: ${data.employeeId}`;
-        // কর্মী নির্বাচন করার সাথে সাথে মাসিক এন্ট্রি (attendance) রিফ্রেশ হবে
-        loadMonthlyAttendance();
+    async function loadEmployees() {
+      try {
+        const snapshot = await db.collection('employees').get();
+        // ড্রপডাউন ক্লিয়ার করা
+        employeeSelect.innerHTML = '<option value="">কর্মী নির্বাচন করুন...</option>';
+        snapshot.forEach(doc => {
+          const employee = doc.data();
+          const option = document.createElement('option');
+          option.value = doc.id;
+          option.textContent = `${employee.name} (${employee.employeeId})`;
+          employeeSelect.appendChild(option);
+        });
+        // Select2 রিফ্রেশ
+        $('#employeeSelect').trigger('change');
+      } catch (error) {
+        console.error('কর্মী লোড করতে ত্রুটি:', error);
       }
-    } catch (error) {
-      console.error('কর্মী তথ্য পড়তে সমস্যা:', error);
     }
-  }
-});
-
 
     // মাসিক এন্ট্রি লোড করার ফাংশন
     async function loadMonthlyAttendance() {
@@ -454,7 +438,6 @@ employeeSelect.addEventListener('change', async () => {
             attendanceTableBody.innerHTML += row;
           });
         }
-        // হিসাব ফলাফল দেখানো
         resultDiv.innerHTML = `
           <h4>মোট উপস্থিতি: ${totalPresent} দিন</h4>
           <h4>মোট ওভারটাইম: ${totalOvertime} ঘণ্টা</h4>
@@ -464,8 +447,18 @@ employeeSelect.addEventListener('change', async () => {
       }
     }
 
-    // কর্মী নির্বাচন ইভেন্ট (একবার সংযুক্ত করা হয়েছে)
+    // কর্মী নির্বাচন ইভেন্ট (একবার সংযুক্ত)
     employeeSelect.addEventListener('change', async () => {
+      // ফর্ম ও ফলাফল রিসেট
+      entryDateInput.value = new Date().toISOString().split('T')[0];
+      updateDefaultTimes();
+      overtimeInput.value = "";
+      lateInput.value = "0.00";
+      attendanceTableBody.innerHTML = "";
+      resultDiv.innerHTML = "";
+      selectedEmployeeName.textContent = "নাম: ";
+      selectedEmployeeId.textContent = "";
+
       if (employeeSelect.value) {
         try {
           const doc = await db.collection('employees').doc(employeeSelect.value).get();
@@ -478,11 +471,6 @@ employeeSelect.addEventListener('change', async () => {
         } catch (error) {
           console.error('কর্মী তথ্য পড়তে সমস্যা:', error);
         }
-      } else {
-        selectedEmployeeName.textContent = 'নাম: ';
-        selectedEmployeeId.textContent = '';
-        attendanceTableBody.innerHTML = '';
-        resultDiv.innerHTML = '';
       }
     });
 
@@ -499,7 +487,7 @@ employeeSelect.addEventListener('change', async () => {
     // 'মাস লোড করুন' বাটন (মাস/বছর পরিবর্তনের জন্য)
     loadMonthBtn.addEventListener('click', loadMonthlyAttendance);
 
-    // calculateLate ফাংশন (শুধুমাত্র একবার সংজ্ঞায়িত)
+    // calculateLate ফাংশন (একবার সংজ্ঞায়িত)
     function calculateLate() {
       const inTimeVal = inTimeInput.value;
       const outTimeVal = outTimeInput.value;
@@ -516,7 +504,6 @@ employeeSelect.addEventListener('change', async () => {
       inDateTime.setHours(inHours, inMinutes);
       outDateTime.setHours(outHours, outMinutes);
       
-      // যদি আউটটাইম ইনটাইমের পূর্বে থাকে (মধ্যরাত পার), তাহলে ১ দিন যোগ করুন
       if (outDateTime < inDateTime) {
         outDateTime.setDate(outDateTime.getDate() + 1);
       }
