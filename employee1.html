@@ -115,7 +115,6 @@
         </div>
       </div>
 
-      
     <!-- মাস ও বছর নির্বাচন -->
     <div class="month-year-selection mb-4 no-print">
       <div class="row g-3">
@@ -166,7 +165,7 @@
           </select>
           <span id="attendanceError" class="error text-danger"></span>
         </div>
-        <!-- ডিউটি টাইপ (ইন টাইম এর আগে) -->
+        <!-- ডিউটি টাইপ -->
         <div class="col-md-3">
           <label for="dutyType" class="form-label">ডিউটি টাইপ:</label>
           <select id="dutyType" class="form-select">
@@ -201,7 +200,7 @@
       </div>
     </div>
     
-    <!-- মাসিক ডাটা টেবিল এবং ফলাফল (নতুন কলামসহ) -->
+    <!-- মাসিক ডাটা টেবিল এবং ফলাফল -->
     <div class="monthly-table">
       <h2 class="mb-3 no-print">মাসিক এন্ট্রি</h2>
       <div class="table-responsive">
@@ -292,9 +291,11 @@
 
     // DOM উপাদানসমূহ
     const employeeSelect = document.getElementById('employeeSelect');
-    const selectedEmployeeName = document.getElementById('selectedEmployeeName');
-    const selectedEmployeeId = document.getElementById('selectedEmployeeId');
-    const clearSelectionBtn = document.getElementById('clearSelection');
+    // নীচের তিনটি উপাদানের আর কোনো ব্যবহার নেই, তাই এগুলো সরিয়ে দিন:
+    // const selectedEmployeeName = document.getElementById('selectedEmployeeName');
+    // const selectedEmployeeId = document.getElementById('selectedEmployeeId');
+    // const clearSelectionBtn = document.getElementById('clearSelection');
+    
     const monthSelect = document.getElementById('monthSelect');
     const yearSelect = document.getElementById('yearSelect');
     const loadMonthBtn = document.getElementById('loadMonth');
@@ -426,49 +427,26 @@
       }
     }
 
-    // কর্মী নির্বাচন ইভেন্ট (একবার সংযুক্ত)
+    // কর্মী নির্বাচন ইভেন্ট – এখন শুধুমাত্র ডাটা রিসেট ও মাসিক এন্ট্রি লোড করা হবে
     employeeSelect.addEventListener('change', async () => {
-  // পুরানো তথ্য রিসেট করা
-  entryDateInput.value = new Date().toISOString().split('T')[0];
-  updateDefaultTimes();
-  overtimeInput.value = "";
-  lateInput.value = "0.00";
-  attendanceTableBody.innerHTML = "";
-  resultDiv.innerHTML = "";
-  selectedEmployeeName.textContent = "নাম: ";
-  selectedEmployeeId.textContent = "";
+      // পুরানো তথ্য রিসেট করা
+      entryDateInput.value = new Date().toISOString().split('T')[0];
+      updateDefaultTimes();
+      overtimeInput.value = "";
+      lateInput.value = "0.00";
+      attendanceTableBody.innerHTML = "";
+      resultDiv.innerHTML = "";
 
-  if (employeeSelect.value) {
-    try {
-      const doc = await db.collection('employees').doc(employeeSelect.value).get();
-      if (doc.exists) {
-        const data = doc.data();
-        selectedEmployeeName.textContent = data.name;
-        selectedEmployeeId.textContent = `আইডি: ${data.employeeId}`;
+      if (employeeSelect.value) {
         // কর্মী সিলেক্ট হওয়ার সাথে সাথে মাসিক এন্ট্রি লোড করা হবে
         loadMonthlyAttendance();
       }
-    } catch (error) {
-      console.error('কর্মী তথ্য পড়তে সমস্যা:', error);
-    }
-  }
-});
-
-
-    // নির্বাচন বাতিল করার বাটন
-    clearSelectionBtn.addEventListener('click', () => {
-      employeeSelect.value = '';
-      $('#employeeSelect').trigger('change');
-      selectedEmployeeName.textContent = 'নাম: ';
-      selectedEmployeeId.textContent = '';
-      attendanceTableBody.innerHTML = '';
-      resultDiv.innerHTML = '';
     });
 
     // 'মাস লোড করুন' বাটন (মাস/বছর পরিবর্তনের জন্য)
     loadMonthBtn.addEventListener('click', loadMonthlyAttendance);
 
-    // calculateLate ফাংশন (একবার সংজ্ঞায়িত)
+    // calculateLate ফাংশন
     function calculateLate() {
       const inTimeVal = inTimeInput.value;
       const outTimeVal = outTimeInput.value;
@@ -495,7 +473,7 @@
       lateInput.value = lateHours > 0 ? lateHours.toFixed(2) : "0.00";
     }
 
-    // ইনটাইম, আউটটাইম, dutyType ও entryDate পরিবর্তনের সাথে লেট হিসাব
+    // ইন টাইম, আউট টাইম, dutyType ও entryDate পরিবর্তনের সাথে লেট হিসাব
     inTimeInput.addEventListener('change', calculateLate);
     outTimeInput.addEventListener('change', calculateLate);
     entryDateInput.addEventListener('change', calculateLate);
