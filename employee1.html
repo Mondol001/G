@@ -324,9 +324,9 @@ const firebaseConfig = {
     const loadMonthBtn = document.getElementById('loadMonth');
     const entryDateInput = document.getElementById('entryDate');
     const attendanceStatusSelect = document.getElementById('attendanceStatus');
+    const dutyTypeSelect = document.getElementById('dutyType');
     const inTimeInput = document.getElementById('inTime');
     const outTimeInput = document.getElementById('outTime');
-    const dutyTypeSelect = document.getElementById('dutyType');
     const overtimeInput = document.getElementById('overtimeInput');
     const lateInput = document.getElementById('lateInput');
     const saveEntryBtn = document.getElementById('saveEntry');
@@ -334,10 +334,7 @@ const firebaseConfig = {
     const resultDiv = document.getElementById('result');
     const printBtn = document.getElementById('printBtn');
     const pdfBtn = document.getElementById('pdfBtn');
-const dutyTypeSelect = document.getElementById('dutyType');
-const inTimeInput = document.getElementById('inTime');
-const outTimeInput = document.getElementById('outTime');
-
+    
    // ফাংশন: dutyType অনুযায়ী ইন ও আউট টাইমের ডিফল্ট মান সেট করা
 function updateDefaultTimes() {
   if (dutyTypeSelect.value === 'day') {
