@@ -4,18 +4,27 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>কর্মীর মাসিক হাজিরা ও ওভারটাইম এন্ট্রি</title>
+  
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- jQuery (Select2 এর জন্য, অবশ্যই Select2 এর আগে যুক্ত করতে হবে) -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  
   <!-- Select2 CSS for searchable dropdown -->
   <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+  
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+  
   <!-- jsPDF for PDF export -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  
   <style>
     :root {
       --primary-color: #2c3e50;
@@ -153,7 +162,6 @@
           <select id="yearSelect" class="form-select"></select>
         </div>
         <div class="col-md-4 d-flex align-items-end">
-          <!-- 'মাস লোড করুন' বাটন -->
           <button id="loadMonth" class="btn btn-primary w-100">মাস লোড করুন</button>
         </div>
       </div>
@@ -198,7 +206,6 @@
         </div>
         <div class="col-md-2">
           <label for="lateInput" class="form-label">লেট (ঘণ্টা):</label>
-          <!-- রিড-অনলি, ইন-আউট টাইম থেকে হিসাব করা হবে -->
           <input type="number" id="lateInput" class="form-control" readonly value="0">
         </div>
         <div class="col-12">
@@ -207,7 +214,7 @@
       </div>
     </div>
     
-    <!-- মাসিক ডাটা টেবিল এবং ফলাফল (নতুন কলাম সহ) -->
+    <!-- মাসিক ডাটা টেবিল এবং ফলাফল (নতুন কলামসহ) -->
     <div class="monthly-table">
       <h2 class="mb-3 no-print">মাসিক এন্ট্রি</h2>
       <div class="table-responsive">
@@ -274,20 +281,23 @@
 
   <!-- Bootstrap JS Bundle (includes Popper) -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-  <!-- Select2 JS for searchable dropdown -->
+  
+  <!-- Select2 JS (jQuery এর পরে) -->
   <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+  
   <script>
-    // Firebase কনফিগারেশন
-    const firebaseConfig = {
-      apiKey: "AIzaSyD-WhTe1Kqx4IRaeg_w9s-diHKPE6i6uaE",
-      authDomain: "data-entry-app-3923a.firebaseapp.com",
-      databaseURL: "https://data-entry-app-3923a-default-rtdb.firebaseio.com",
-      projectId: "data-entry-app-3923a",
-      storageBucket: "data-entry-app-3923a.firebasestorage.app",
-      messagingSenderId: "638964410595",
-      appId: "1:638964410595:web:80c8ffa7fe8fc1a48cbdd6",
-      measurementId: "G-01NQ8H9KB7"
-    };
+    // Firebase কনফিগারেশন (আপনার প্রোজেক্ট অনুযায়ী পরিবর্তন করুন)
+    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyD-WhTe1Kqx4IRaeg_w9s-diHKPE6i6uaE",
+  authDomain: "data-entry-app-3923a.firebaseapp.com",
+  databaseURL: "https://data-entry-app-3923a-default-rtdb.firebaseio.com",
+  projectId: "data-entry-app-3923a",
+  storageBucket: "data-entry-app-3923a.firebasestorage.app",
+  messagingSenderId: "638964410595",
+  appId: "1:638964410595:web:80c8ffa7fe8fc1a48cbdd6",
+  measurementId: "G-01NQ8H9KB7"
+};
 
     // Firebase ইনিশিয়ালাইজেশন
     firebase.initializeApp(firebaseConfig);
@@ -338,7 +348,7 @@
       });
     });
 
-    // ফাংশন: কর্মী লোড করা
+    // কর্মী লোড করার ফাংশন
     async function loadEmployees() {
       try {
         const snapshot = await db.collection('employees').get();
@@ -357,7 +367,7 @@
       }
     }
 
-    // ফাংশন: মাসিক এন্ট্রি লোড করা
+    // মাসিক এন্ট্রি লোড করার ফাংশন
     async function loadMonthlyAttendance() {
       if (!employeeSelect.value) return;
       const month = parseInt(monthSelect.value);
@@ -447,7 +457,6 @@
         lateInput.value = 0;
         return;
       }
-      // inTime এবং outTime কে Date অবজেক্টে রূপান্তর
       const entryDate = new Date(entryDateInput.value || new Date().toISOString().split('T')[0]);
       const inDateTime = new Date(entryDate);
       const outDateTime = new Date(entryDate);
@@ -456,19 +465,17 @@
       inDateTime.setHours(inHours, inMinutes);
       outDateTime.setHours(outHours, outMinutes);
 
-      // যদি আউটটাইম ইনটাইমের পর না হয় (অর্থাৎ ক্রস-মিডনাইট), তাহলে আউটটাইমে 1 দিন যোগ করুন
+      // ক্রস-মিডনাইট হ্যান্ডেল করা
       if (outDateTime < inDateTime) {
         outDateTime.setDate(outDateTime.getDate() + 1);
       }
-      // মোট কাজের ঘণ্টা হিসাব
       const workedHours = (outDateTime - inDateTime) / (1000 * 60 * 60);
-      // প্রত্যাশিত সময়: দিবা = ১১ ঘণ্টা, রাত্রি = ১২ ঘণ্টা
       const expectedHours = dutyTypeSelect.value === 'day' ? 11 : 12;
       const lateHours = Math.max(0, (expectedHours - workedHours).toFixed(2));
       lateInput.value = lateHours;
     }
 
-    // ইনটাইম, আউটটাইম ও ডিউটি টাইপ পরিবর্তনের সাথে লেট পুনঃহিসাব করা
+    // ইনটাইম, আউটটাইম ও ডিউটি টাইপ পরিবর্তনের সাথে লেট পুনঃহিসাব
     inTimeInput.addEventListener('change', calculateLate);
     outTimeInput.addEventListener('change', calculateLate);
     dutyTypeSelect.addEventListener('change', calculateLate);
@@ -500,7 +507,7 @@
       }
     });
 
-    // দৈনিক এন্ট্রি সংরক্ষণ (যে ক্ষেত্রে একই তারিখ থাকলে আপডেট হবে)
+    // দৈনিক এন্ট্রি সংরক্ষণ (একই তারিখ থাকলে আপডেট হবে)
     saveEntryBtn.addEventListener('click', async () => {
       if (!employeeSelect.value) {
         alert('কর্মী নির্বাচন করুন');
@@ -519,7 +526,6 @@
         document.getElementById('attendanceError').textContent = '';
       }
       
-      // নতুন ফিল্ডসমূহ সংগ্রহ
       const entryDateValue = new Date(entryDateInput.value);
       const entryData = {
         date: entryDateValue,
@@ -534,7 +540,6 @@
 
       try {
         const attendanceRef = db.collection('employees').doc(employeeSelect.value).collection('attendance');
-        // একই তারিখের এন্ট্রি খুঁজে বের করা
         const querySnapshot = await attendanceRef.where('date', '==', entryDateValue).get();
 
         if (!querySnapshot.empty) {
@@ -546,7 +551,6 @@
           alert('এন্ট্রি সফলভাবে সংরক্ষিত হয়েছে!');
         }
         loadMonthlyAttendance();
-        // ফর্ম রিসেট (যদি প্রয়োজন)
         overtimeInput.value = '';
       } catch (error) {
         console.error('এন্ট্রি সংরক্ষণে ত্রুটি:', error);
@@ -563,7 +567,6 @@
     pdfBtn.addEventListener('click', () => {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
-      // কন্টেইনারের HTML কন্টেন্ট পিডিএফে রেন্ডার করা
       doc.html(document.querySelector('.container'), {
         callback: function (doc) {
           doc.save('attendance.pdf');
