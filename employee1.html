@@ -26,62 +26,91 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   
   <style>
-    :root {
-      --primary-color: #2c3e50;
-      --secondary-color: #3498db;
-    }
+    /* ব্যাকগ্রাউন্ড গ্রেডিয়েন্ট এবং গ্লাসি ইফেক্ট */
     body {
-      background: #f8f9fa;
+      background: linear-gradient(135deg, #74ebd5, #ACB6E5);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      min-height: 100vh;
       padding: 20px;
     }
     .container {
       max-width: 1200px;
       margin: auto;
-      background: #fff;
-      padding: 30px;
+      background: rgba(255, 255, 255, 0.3);
       border-radius: 15px;
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      padding: 30px;
+      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.18);
     }
     .header-section {
-      border-bottom: 3px solid var(--primary-color);
+      border-bottom: 2px solid rgba(255,255,255,0.6);
       padding-bottom: 20px;
       margin-bottom: 30px;
+      text-shadow: 1px 1px 5px rgba(0,0,0,0.3);
     }
+    .header-section h1 {
+      color: #fff;
+      font-weight: 700;
+    }
+    /* কর্মী নির্বাচন সেকশন */
     .employee-selector {
-      background: #f8f9fa;
+      background: rgba(255, 255, 255, 0.4);
       border-radius: 10px;
       padding: 20px;
       margin-bottom: 30px;
     }
-    .form-control:focus {
-      border-color: var(--secondary-color);
-      box-shadow: 0 0 0 0.25rem rgba(52, 152, 219, 0.25);
+    .employee-selector label {
+      color: #333;
+      font-weight: 500;
+    }
+    .form-control,
+    .form-select {
+      background: rgba(255, 255, 255, 0.6);
+      border: 1px solid rgba(255,255,255,0.6);
+      color: #333;
+      font-weight: 500;
+    }
+    .form-control:focus,
+    .form-select:focus {
+      box-shadow: 0 0 5px rgba(52,152,219,0.5);
+      border-color: #3498db;
     }
     .btn-primary {
-      background-color: var(--secondary-color);
+      background-color: #3498db;
       border: none;
       padding: 10px 25px;
       transition: all 0.3s;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
     }
     .btn-primary:hover {
       background-color: #2980b9;
       transform: translateY(-2px);
     }
-    .table-hover tbody tr:hover {
-      background-color: rgba(52, 152, 219, 0.1);
+    .btn-success {
+      background-color: #2ecc71;
+      border: none;
+      transition: all 0.3s;
     }
-    .badge {
-      font-size: 0.9em;
-      padding: 8px 12px;
+    .btn-success:hover {
+      background-color: #27ae60;
+    }
+    .table {
+      background: rgba(255,255,255,0.8);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .table thead th {
+      background: #3498db;
+      color: #fff;
+    }
+    .table-hover tbody tr:hover {
+      background-color: rgba(52, 152, 219, 0.15);
     }
     @media print {
       .no-print {
         display: none !important;
-      }
-      .print-header {
-        display: block !important;
-        text-align: center;
-        margin-bottom: 20px;
       }
     }
   </style>
@@ -89,40 +118,39 @@
 <body>
   <div class="container">
     <!-- হেডার সেকশন -->
-    <div class="header-section">
-      <h1 class="text-center mb-4 text-primary">
-        <i class="fas fa-clipboard-list"></i> কর্মী হাজিরা ব্যবস্থাপনা সিস্টেম
-      </h1>
-      
-      <!-- কর্মী নির্বাচনকারী (সার্চযোগ্য) -->
-      <div class="employee-selector">
-        <div class="row g-3 align-items-center">
-          <div class="col-md-8">
-            <label class="form-label">
-              <i class="fas fa-user-tie"></i> কর্মী নির্বাচন করুন:
-            </label>
-            <select id="employeeSelect" class="form-select form-select-lg">
-              <option value="">কর্মী নির্বাচন করুন...</option>
-            </select>
-          </div>
-          <div class="col-md-4">
-            <div class="d-grid">
-              <button class="btn btn-success btn-lg" data-bs-toggle="modal" data-bs-target="#newEmployeeModal">
-                <i class="fas fa-plus-circle"></i> নতুন কর্মী যোগ করুন
-              </button>
-            </div>
-          </div>
+    <div class="header-section text-center">
+      <h1><i class="fas fa-clipboard-list"></i> কর্মী হাজিরা ব্যবস্থাপনা সিস্টেম</h1>
+    </div>
+    
+    <!-- কর্মী নির্বাচন সেকশন: এখানে আমরা কর্মী নির্বাচন এবং "মাস লোড করুন" বাটন একই রোতে রাখছি -->
+    <div class="employee-selector">
+      <div class="row g-3 align-items-center">
+        <div class="col-md-8">
+          <label class="form-label"><i class="fas fa-user-tie"></i> কর্মী নির্বাচন করুন:</label>
+          <select id="employeeSelect" class="form-select form-select-lg">
+            <option value="">কর্মী নির্বাচন করুন...</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <button id="loadMonth" class="btn btn-primary w-100">মাস লোড করুন</button>
         </div>
       </div>
-      
-      <!-- কর্মী তথ্য হেডার (আইডি, নাম, পদবি) -->
-      <div id="employeeHeader" class="mb-3 no-print"></div>
     </div>
-
-    <!-- মাস ও বছর নির্বাচন -->
+    
+    <!-- কর্মী তথ্য হেডার (আইডি, নাম, পদবি) -->
+    <div id="employeeHeader" class="mb-3 text-center no-print"></div>
+    
+    <!-- (ঐচ্ছিক) নতুন কর্মী যোগ করার বাটন, আপনি চাইলে এটিকে অন্য কোনো স্থানে রাখতে পারেন -->
+    <div class="mb-4 no-print text-center">
+      <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#newEmployeeModal">
+        <i class="fas fa-plus-circle"></i> নতুন কর্মী যোগ করুন
+      </button>
+    </div>
+    
+    <!-- মাস ও বছর নির্বাচন (এখানে শুধু মাস/বছরের জন্য) -->
     <div class="month-year-selection mb-4 no-print">
       <div class="row g-3">
-        <div class="col-md-4">
+        <div class="col-md-6">
           <label for="monthSelect" class="form-label">মাস:</label>
           <select id="monthSelect" class="form-select">
             <option value="0">জানুয়ারী</option>
@@ -139,12 +167,9 @@
             <option value="11">ডিসেম্বর</option>
           </select>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-6">
           <label for="yearSelect" class="form-label">বছর:</label>
           <select id="yearSelect" class="form-select"></select>
-        </div>
-        <div class="col-md-4 d-flex align-items-end">
-          <button id="loadMonth" class="btn btn-primary w-100">মাস লোড করুন</button>
         </div>
       </div>
     </div>
@@ -204,7 +229,7 @@
       </div>
     </div>
     
-    <!-- মাসিক ডাটা টেবিল এবং ফলাফল -->
+    <!-- মাসিক এন্ট্রি টেবিল এবং ফলাফল -->
     <div class="monthly-table">
       <h2 class="mb-3 no-print">মাসিক এন্ট্রি</h2>
       <div class="table-responsive">
@@ -240,9 +265,7 @@
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="newEmployeeModalLabel">
-            <i class="fas fa-user-plus"></i> নতুন কর্মী যোগ করুন
-          </h5>
+          <h5 class="modal-title" id="newEmployeeModalLabel"><i class="fas fa-user-plus"></i> নতুন কর্মী যোগ করুন</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="বন্ধ করুন"></button>
         </div>
         <div class="modal-body">
@@ -397,7 +420,7 @@
         attendanceTableBody.innerHTML = '';
         let totalPresent = 0;
         let totalOvertime = 0;
-        let totalLate = 0;  // মোট লেট হিসাবের জন্য নতুন ভেরিয়েবল
+        let totalLate = 0;  // মোট লেট হিসাবের জন্য
 
         if (snapshot.empty) {
           attendanceTableBody.innerHTML = `<tr><td colspan="7" class="text-center">কোন এন্ট্রি নেই</td></tr>`;
@@ -407,7 +430,7 @@
             const entryDate = data.date && data.date.toDate ? data.date.toDate() : new Date(data.date);
             if (data.status === 'present') totalPresent++;
             totalOvertime += data.overtime;
-            totalLate += data.late;  // প্রতিটি এন্ট্রি থেকে লেট যোগ করা হচ্ছে
+            totalLate += data.late;
             const row = `
               <tr>
                 <td>${entryDate.toLocaleDateString('bn-BD')}</td>
@@ -468,7 +491,7 @@
         return;
       }
       
-      // প্রত্যাশিত ইন টাইম নির্ধারণ: দিনে 08:00, রাতে 20:00
+      // প্রত্যাশিত ইন টাইম: দিনে 08:00, রাতে 20:00
       let expectedTimeStr = "";
       if (dutyTypeSelect.value === 'day') {
         expectedTimeStr = "08:00";
@@ -476,14 +499,14 @@
         expectedTimeStr = "20:00";
       }
       
-      // প্রত্যাশিত ও আসল ইন টাইমকে মিনিটে রূপান্তর করুন
+      // প্রত্যাশিত ও আসল ইন টাইমকে মিনিটে রূপান্তর
       const [expectedHours, expectedMinutes] = expectedTimeStr.split(':').map(Number);
       const expectedTotalMinutes = expectedHours * 60 + expectedMinutes;
       
       const [actualHours, actualMinutes] = inTimeVal.split(':').map(Number);
       const actualTotalMinutes = actualHours * 60 + actualMinutes;
       
-      // বিলম্বে আসার মিনিট হিসাব
+      // বিলম্ব (মিনিট) হিসাব
       let lateMinutes = actualTotalMinutes - expectedTotalMinutes;
       if (lateMinutes < 0) {
         lateMinutes = 0;
