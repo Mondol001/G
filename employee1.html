@@ -532,31 +532,42 @@
 
     // নতুন কর্মী ফর্ম সাবমিশন (পদবি সহ)
     document.getElementById('newEmployeeForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      
-      const newEmployee = {
-        name: document.getElementById('newEmployeeName').value.trim(),
-        designation: document.getElementById('newEmployeeDesignation').value.trim(),
-        employeeId: document.getElementById('newEmployeeId').value.trim(),
-        joinDate: new Date(document.getElementById('newEmployeeJoinDate').value),
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-      };
+  e.preventDefault();
 
-      try {
-        await db.collection('employees').add(newEmployee);
-        alert('নতুন কর্মী সফলভাবে যোগ করা হয়েছে!');
-        document.getElementById('newEmployeeForm').reset();
-        await loadEmployees();
-        const newEmployeeModalEl = document.getElementById('newEmployeeModal');
-        const modalInstance = bootstrap.Modal.getInstance(newEmployeeModalEl);
-        if (modalInstance) {
-          modalInstance.hide();
-        }
-      } catch (error) {
-        console.error('কর্মী সংরক্ষণে ত্রুটি:', error);
-        alert('কর্মী সংরক্ষণে ত্রুটি হয়েছে, আবার চেষ্টা করুন।');
-      }
-    });
+  // ফর্ম থেকে ইনপুটগুলো সংগ্রহ
+  const newEmployeeName = document.getElementById('newEmployeeName').value.trim();
+  const newEmployeeDesignation = document.getElementById('newEmployeeDesignation').value.trim();
+  const newEmployeeId = document.getElementById('newEmployeeId').value.trim();
+  const newEmployeeJoinDate = document.getElementById('newEmployeeJoinDate').value;
+
+  // custom document ID তৈরির উদাহরণ: নামের স্পেসগুলোকে "_" দিয়ে প্রতিস্থাপন করা হয়েছে
+  const customDocId = newEmployeeName.replace(/\s+/g, '_') + '_' + newEmployeeId;
+  
+  const newEmployee = {
+    name: newEmployeeName,
+    designation: newEmployeeDesignation,
+    employeeId: newEmployeeId,
+    joinDate: new Date(newEmployeeJoinDate),
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+
+  try {
+    // নতুন ডকুমেন্ট যোগ করা যেখানে নিজস্ব document ID ব্যবহার করা হয়েছে
+    await db.collection('employees').doc(customDocId).set(newEmployee);
+    alert('নতুন কর্মী সফলভাবে যোগ করা হয়েছে!');
+    document.getElementById('newEmployeeForm').reset();
+    await loadEmployees();
+    const newEmployeeModalEl = document.getElementById('newEmployeeModal');
+    const modalInstance = bootstrap.Modal.getInstance(newEmployeeModalEl);
+    if (modalInstance) {
+      modalInstance.hide();
+    }
+  } catch (error) {
+    console.error('কর্মী সংরক্ষণে ত্রুটি:', error);
+    alert('কর্মী সংরক্ষণে ত্রুটি হয়েছে, আবার চেষ্টা করুন।');
+  }
+});
+
 
     // দৈনিক এন্ট্রি সংরক্ষণ (একই তারিখ থাকলে আপডেট হবে)
     saveEntryBtn.addEventListener('click', async () => {
