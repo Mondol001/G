@@ -19,7 +19,7 @@
   
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
   
   <!-- jsPDF for PDF export -->
@@ -114,6 +114,10 @@
           </div>
         </div>
       </div>
+      
+      <!-- কর্মী তথ্য হেডার (আইডি, নাম, পদবি) -->
+      <div id="employeeHeader" class="mb-3 no-print"></div>
+    </div>
 
     <!-- মাস ও বছর নির্বাচন -->
     <div class="month-year-selection mb-4 no-print">
@@ -145,7 +149,7 @@
       </div>
     </div>
     
-    <!-- আজকের এন্ট্রি ফর্ম (ডিউটি টাইপ ফিল্ড ইন টাইমের আগে) -->
+    <!-- আজকের এন্ট্রি ফর্ম (ডিউটি টাইপ, ইন/আউট টাইম, ওভারটাইম, লেট) -->
     <div class="daily-entry mb-4 no-print">
       <h2 class="mb-3">আজকের এন্ট্রি</h2>
       <div class="row g-3">
@@ -202,6 +206,7 @@
     
     <!-- মাসিক ডাটা টেবিল এবং ফলাফল -->
     <div class="monthly-table">
+      <!-- এখানে টেবিল হেডারে আইডি, নাম, পদবি সহ তথ্য দেখানো হবে -->
       <h2 class="mb-3 no-print">মাসিক এন্ট্রি</h2>
       <div class="table-responsive">
         <table id="attendanceTable" class="table table-bordered table-hover">
@@ -247,6 +252,11 @@
               <label class="form-label">কর্মীর নাম</label>
               <input type="text" class="form-control" id="newEmployeeName" required>
             </div>
+            <!-- নতুন ফিল্ড: পদবি -->
+            <div class="mb-3">
+              <label class="form-label">পদবি</label>
+              <input type="text" class="form-control" id="newEmployeeDesignation" required>
+            </div>
             <div class="mb-3">
               <label class="form-label">কর্মী আইডি</label>
               <input type="text" class="form-control" id="newEmployeeId" required>
@@ -291,11 +301,7 @@
 
     // DOM উপাদানসমূহ
     const employeeSelect = document.getElementById('employeeSelect');
-    // নীচের তিনটি উপাদানের আর কোনো ব্যবহার নেই, তাই এগুলো সরিয়ে দিন:
-    // const selectedEmployeeName = document.getElementById('selectedEmployeeName');
-    // const selectedEmployeeId = document.getElementById('selectedEmployeeId');
-    // const clearSelectionBtn = document.getElementById('clearSelection');
-    
+    const employeeHeader = document.getElementById('employeeHeader');
     const monthSelect = document.getElementById('monthSelect');
     const yearSelect = document.getElementById('yearSelect');
     const loadMonthBtn = document.getElementById('loadMonth');
@@ -315,26 +321,24 @@
     // dutyType অনুযায়ী ইন ও আউট টাইমের ডিফল্ট মান সেট করার ফাংশন
     function updateDefaultTimes() {
       if (dutyTypeSelect.value === 'day') {
-        // দিনে: ইন টাইম 08:00, আউট টাইম 20:00
         inTimeInput.value = "08:00";
         outTimeInput.value = "20:00";
       } else if (dutyTypeSelect.value === 'night') {
-        // রাতে: ইন টাইম 20:00, আউট টাইম 08:00
         inTimeInput.value = "20:00";
         outTimeInput.value = "08:00";
       }
     }
     
-    // পেজ লোড হবার সময় ডিফল্ট টাইম ও তারিখ সেট করা
+    // পেজ লোডে ডিফল্ট টাইম ও তারিখ সেট করা
     document.addEventListener("DOMContentLoaded", function() {
       updateDefaultTimes();
       entryDateInput.value = new Date().toISOString().split('T')[0];
     });
 
-    // dutyType পরিবর্তনের সাথে সাথে ডিফল্ট টাইম আপডেট
+    // dutyType পরিবর্তনের সাথে সাথে ডিফল্ট টাইম ও লেট হিসাব আপডেট
     dutyTypeSelect.addEventListener('change', function() {
       updateDefaultTimes();
-      calculateLate();  // dutyType পরিবর্তনের সাথে লেট হিসাবও হোক
+      calculateLate();
     });
 
     // বর্তমান মাস ও বছর ডিফল্ট হিসেবে সেট করা
@@ -357,20 +361,18 @@
       });
     });
 
-    // কর্মী লোড করার ফাংশন
+    // কর্মী লোড করার ফাংশন (পদবি সহ)
     async function loadEmployees() {
       try {
         const snapshot = await db.collection('employees').get();
-        // ড্রপডাউন ক্লিয়ার করা
         employeeSelect.innerHTML = '<option value="">কর্মী নির্বাচন করুন...</option>';
         snapshot.forEach(doc => {
           const employee = doc.data();
           const option = document.createElement('option');
           option.value = doc.id;
-          option.textContent = `${employee.name} (${employee.employeeId})`;
+          option.textContent = `${employee.name} (${employee.employeeId})${employee.designation ? " - " + employee.designation : ""}`;
           employeeSelect.appendChild(option);
         });
-        // Select2 রিফ্রেশ
         $('#employeeSelect').trigger('change');
       } catch (error) {
         console.error('কর্মী লোড করতে ত্রুটি:', error);
@@ -427,9 +429,8 @@
       }
     }
 
-    // কর্মী নির্বাচন ইভেন্ট – এখন শুধুমাত্র ডাটা রিসেট ও মাসিক এন্ট্রি লোড করা হবে
+    // কর্মী নির্বাচন ইভেন্ট – কর্মীর তথ্য হেডারে দেখাবে এবং মাসিক এন্ট্রি লোড করবে
     employeeSelect.addEventListener('change', async () => {
-      // পুরানো তথ্য রিসেট করা
       entryDateInput.value = new Date().toISOString().split('T')[0];
       updateDefaultTimes();
       overtimeInput.value = "";
@@ -438,8 +439,18 @@
       resultDiv.innerHTML = "";
 
       if (employeeSelect.value) {
-        // কর্মী সিলেক্ট হওয়ার সাথে সাথে মাসিক এন্ট্রি লোড করা হবে
-        loadMonthlyAttendance();
+        try {
+          const doc = await db.collection('employees').doc(employeeSelect.value).get();
+          if (doc.exists) {
+            const data = doc.data();
+            employeeHeader.innerHTML = `<h4>আইডি: ${data.employeeId} | নাম: ${data.name} | পদবি: ${data.designation || "-"}</h4>`;
+            loadMonthlyAttendance();
+          }
+        } catch (error) {
+          console.error('কর্মী তথ্য পড়তে সমস্যা:', error);
+        }
+      } else {
+        employeeHeader.innerHTML = "";
       }
     });
 
@@ -473,17 +484,17 @@
       lateInput.value = lateHours > 0 ? lateHours.toFixed(2) : "0.00";
     }
 
-    // ইন টাইম, আউট টাইম, dutyType ও entryDate পরিবর্তনের সাথে লেট হিসাব
     inTimeInput.addEventListener('change', calculateLate);
     outTimeInput.addEventListener('change', calculateLate);
     entryDateInput.addEventListener('change', calculateLate);
 
-    // নতুন কর্মী ফর্ম সাবমিশন
+    // নতুন কর্মী ফর্ম সাবমিশন (পদবি সহ)
     document.getElementById('newEmployeeForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       
       const newEmployee = {
         name: document.getElementById('newEmployeeName').value.trim(),
+        designation: document.getElementById('newEmployeeDesignation').value.trim(),
         employeeId: document.getElementById('newEmployeeId').value.trim(),
         joinDate: new Date(document.getElementById('newEmployeeJoinDate').value),
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -561,17 +572,38 @@
       window.print();
     });
 
-    // পিডিএফ ডাউনলোড বাটন: jsPDF ব্যবহার করে পিডিএফ তৈরি
-    pdfBtn.addEventListener('click', () => {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-      doc.html(document.querySelector('.container'), {
-        callback: function (doc) {
-          doc.save('attendance.pdf');
-        },
-        x: 10,
-        y: 10
-      });
+    // পিডিএফ ডাউনলোড বাটন: যদি File System Access API পাওয়া যায় তবে ব্যবহারকারীকে পাথ নির্বাচন করতে বলবে, নাহলে ডিফল্ট ডাউনলোড
+    pdfBtn.addEventListener('click', async () => {
+      if (window.showDirectoryPicker) {
+        try {
+          // ব্যবহারকারীকে ডিরেক্টরি নির্বাচন করতে বলুন
+          const directoryHandle = await window.showDirectoryPicker();
+          const { jsPDF } = window.jspdf;
+          const doc = new jsPDF();
+          await doc.html(document.querySelector('.container'));
+          const pdfBlob = doc.output('blob');
+          const fileName = prompt("ফাইল নাম লিখুন:", "attendance.pdf") || "attendance.pdf";
+          const fileHandle = await directoryHandle.getFileHandle(fileName, { create: true });
+          const writableStream = await fileHandle.createWritable();
+          await writableStream.write(pdfBlob);
+          await writableStream.close();
+          alert("PDF সফলভাবে সংরক্ষণ করা হয়েছে!");
+        } catch (err) {
+          console.error(err);
+          alert("ডাউনলোড পাথ নির্বাচন বা PDF সংরক্ষণ করতে ব্যর্থ হয়েছে");
+        }
+      } else {
+        // ফallback: Browser save dialog
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        doc.html(document.querySelector('.container'), {
+          callback: function (doc) {
+            doc.save('attendance.pdf');
+          },
+          x: 10,
+          y: 10
+        });
+      }
     });
 
     // প্রাথমিক লোড
