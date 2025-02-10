@@ -240,13 +240,15 @@
             let cellContent = '-';
             if (attendanceMap[d]) {
               const record = attendanceMap[d];
-              if (record.attendance === 'present') {  // এখন attendance ফিল্ড চেক করা হচ্ছে
+              if (record.attendance === 'present') {
                 const ot = parseFloat(record.overtime) || 0;
                 cellContent = ot;
                 totalOvertime += ot;
                 hasPresent = true;
               } else if (record.attendance === 'absent') {
                 cellContent = 'AB';
+              } else if (record.attendance === 'leave') {
+                cellContent = 'LV';
               }
             }
             row += `<td>${cellContent}</td>`;
