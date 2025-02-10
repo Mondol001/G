@@ -52,10 +52,21 @@
       background-color: #3498db;
       color: #fff;
     }
+    /* Back বাটনের স্টাইলিং */
+    .back-btn {
+      margin-bottom: 20px;
+    }
   </style>
 </head>
 <body>
   <div class="container">
+    <!-- Back বাটন (ডান পাশে) -->
+    <div class="back-btn d-flex justify-content-end">
+      <a href="index.html" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> পিছনে যান
+      </a>
+    </div>
+    
     <!-- হেডার সেকশন -->
     <div class="header-section text-center">
       <h1><i class="fas fa-chart-line"></i> হাজিরা ড্যাশবোর্ড</h1>
@@ -169,7 +180,6 @@
     
     // ড্যাশবোর্ড ডেটা লোড করার ফাংশন (ফিল্টার ও মাস/বছর অনুযায়ী)
     async function loadDashboard() {
-      // মোডালের ইনপুট থেকে ফিল্টার মান ও মাস/বছর নেওয়া
       const filterId = document.getElementById('filterId').value.trim().toLowerCase();
       const filterName = document.getElementById('filterName').value.trim().toLowerCase();
       const month = parseInt(document.getElementById('dashboardMonthModal').value);
@@ -240,7 +250,7 @@
             let cellContent = '-';
             if (attendanceMap[d]) {
               const record = attendanceMap[d];
-              if (record.attendance === 'present') {  // এখন attendance ফিল্ড চেক করা হচ্ছে
+              if (record.attendance === 'present') {
                 const ot = parseFloat(record.overtime) || 0;
                 cellContent = ot;
                 totalOvertime += ot;
@@ -251,7 +261,6 @@
             }
             row += `<td>${cellContent}</td>`;
           }
-          // Total কলামে, যদি present থাকে তাহলে overtime-এর যোগফল, নতুবা "AB"
           row += `<td>${hasPresent ? totalOvertime : 'AB'}</td>`;
           row += '</tr>';
           return row;
@@ -264,10 +273,18 @@
       }
     }
     
-    // মোডালের "নির্বাচন প্রয়োগ করুন" বাটনে ক্লিক করলে ড্যাশবোর্ড লোড হবে
     document.getElementById('modalApplyBtn').addEventListener('click', loadDashboard);
-    // পেজ লোডের সময়ও ড্যাশবোর্ড লোড করা
     window.addEventListener('load', loadDashboard);
+    
+    // Back বাটন প্রদর্শনের শর্ত: 
+    // যদি ব্যবহারকারী index.html থেকে ড্যাশবোর্ডে প্রবেশ করে (document.referrer তে "index.html" থাকলে)
+    // তাহলে Back বাটন দেখাবে, নতুবা সরাসরি ড্যাশবোর্ডে প্রবেশ করলে লুকিয়ে থাকবে।
+    document.addEventListener('DOMContentLoaded', function() {
+      var backBtnContainer = document.querySelector('.back-btn');
+      if (document.referrer.indexOf("index.html") === -1) {
+        backBtnContainer.style.display = "none";
+      }
+    });
   </script>
 </body>
 </html>
