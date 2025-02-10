@@ -225,9 +225,11 @@
         <button id="printBtn" class="btn btn-primary"><i class="fas fa-print"></i> প্রিন্ট করুন</button>
         <button id="pdfBtn" class="btn btn-secondary"><i class="fas fa-file-pdf"></i> পিডিএফ ডাউনলোড করুন</button>
       </div>
-      <div id="result" class="mt-3 p-3 bg-light rounded"></div>
     </div>
   </div>
+  
+  <!-- Toast Container for Notifications (উপরে দেখানোর জন্য) -->
+  <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1080;"></div>
   
   <!-- আজকের হাজিরা এন্ট্রি মোডাল -->
   <div class="modal fade" id="attendanceEntryModal" tabindex="-1" aria-labelledby="attendanceEntryModalLabel" aria-hidden="true">
@@ -378,6 +380,12 @@
     $(document).ready(function(){
       $('#employeeSelect').select2();
       populateYearSelect();
+      
+      // **ডিফল্ট মাস ও বছর নির্বাচন:**
+      // বর্তমান বছর ইতিমধ্যে populateYearSelect() থেকে ডিফল্ট সেট হয়, 
+      // কিন্তু মাস সিলেক্টরে এখন বর্তমান মাস সেট করা হচ্ছে
+      document.getElementById("monthSelect").value = new Date().getMonth();
+
       loadEmployees();
       // থিম লোড: localStorage থেকে থিম পড়া
       const savedTheme = localStorage.getItem("theme") || "light";
@@ -414,6 +422,7 @@
           employeeSelect.append(option);
         });
       }).catch(error => {
+        showMessage("কর্মী লোড করতে ত্রুটি: " + error.message, "danger");
         console.error("কর্মী লোড করতে ত্রুটি:", error);
       });
     }
@@ -441,13 +450,49 @@
     document.querySelector('[data-bs-target="#attendanceEntryModal"]').addEventListener('click', function(e) {
       if (!currentEmployeeId) {
         e.preventDefault();
-        alert("দয়া করে প্রথমে কর্মী নির্বাচন করুন");
+        showMessage("দয়া করে প্রথমে কর্মী নির্বাচন করুন", "warning");
       } else {
-        // মোডাল খুলার সময় তারিখ হিসেবে আজকের তারিখ সেট করা
-        const today = new Date().toISOString().split("T")[0];
-        document.getElementById("modalEntryDate").value = today;
+        // বর্তমান তারিখ, মাস ও বছর
+        const now = new Date();
+        const currentMonth = now.getMonth();
+        const currentYear = now.getFullYear();
+        
+        // নির্বাচিত মাস ও বছর
+        const selectedMonth = parseInt(document.getElementById("monthSelect").value);
+        const selectedYear = parseInt(document.getElementById("yearSelect").value);
+        
+        // যদি নির্বাচিত মাস ও বছর বর্তমান মাস ও বছরের সমান হয়, তাহলে আজকের তারিখ সেট করা হবে
+        if(selectedMonth === currentMonth && selectedYear === currentYear){
+          document.getElementById("modalEntryDate").value = now.toISOString().split("T")[0];
+        } else {
+          // অন্যথায়, date ফিল্ড ফাকা থাকবে
+          document.getElementById("modalEntryDate").value = "";
+        }
       }
     });
+
+    /***************** Duty Type Default Time Setup *****************/
+    document.getElementById("modalDutyType").addEventListener("change", function() {
+      const duty = this.value;
+      if(duty === "day"){
+        document.getElementById("modalInTime").value = "08:00";
+        document.getElementById("modalOutTime").value = "20:00";
+      } else if(duty === "night"){
+        document.getElementById("modalInTime").value = "20:00";
+        document.getElementById("modalOutTime").value = "08:00";
+      }
+    });
+
+    /***************** Late Time Calculation Function *****************/
+    function calculateLate(actualTime, dutyType) {
+      // যদি dutyType "day" হলে base time 08:00, "night" হলে base time 20:00
+      let baseTime = (dutyType === "day") ? "08:00" : "20:00";
+      const [actualH, actualM] = actualTime.split(":").map(Number);
+      const [baseH, baseM] = baseTime.split(":").map(Number);
+      const actualMinutes = actualH * 60 + actualM;
+      const baseMinutes = baseH * 60 + baseM;
+      return Math.max(0, actualMinutes - baseMinutes);
+    }
 
     /***************** Fix 2: Adjusted Date Handling in Monthly Report *****************/
     async function loadMonthlyAttendance() {
@@ -500,6 +545,7 @@
           });
         }
       } catch (error) {
+        showMessage("মাসিক রিপোর্ট লোড করতে ত্রুটি: " + error.message, "danger");
         console.error("মাসিক রিপোর্ট লোড করতে ত্রুটি:", error);
       }
     }
@@ -508,7 +554,57 @@
     document.getElementById("monthSelect").addEventListener("change", loadMonthlyAttendance);
     document.getElementById("yearSelect").addEventListener("change", loadMonthlyAttendance);
 
-    /***************** Save Attendance Entry *****************/
+    /***************** Show Message Function using Toast Notifications *****************/
+    function showMessage(message, type) {
+      // নির্দিষ্ট ধরনের জন্য শিরোনাম নির্ধারণ
+      let title = "";
+      switch(type) {
+        case "success":
+          title = "সফল";
+          break;
+        case "danger":
+          title = "ত্রুটি";
+          break;
+        case "warning":
+          title = "সতর্কতা";
+          break;
+        case "info":
+          title = "তথ্য";
+          break;
+        default:
+          title = "নোটিশ";
+      }
+
+      // Toast এর HTML টেমপ্লেট তৈরি
+      const toastHTML = `
+        <div class="toast align-items-center text-bg-${type} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+          <div class="d-flex">
+            <div class="toast-body">
+              <strong>${title}:</strong> ${message}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+          </div>
+        </div>
+      `;
+      
+      // Toast Container-এ নতুন toast যোগ করা
+      const toastContainer = document.querySelector('.toast-container');
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = toastHTML;
+      const toastElement = tempDiv.firstElementChild;
+      toastContainer.appendChild(toastElement);
+      
+      // Bootstrap Toast ইনিশিয়ালাইজ ও প্রদর্শন
+      const toast = new bootstrap.Toast(toastElement, { delay: 5000, autohide: true });
+      toast.show();
+      
+      // Toast হাইড হওয়ার পরে DOM থেকে সরিয়ে ফেলা
+      toastElement.addEventListener('hidden.bs.toast', function () {
+        toastElement.remove();
+      });
+    }
+
+    /***************** Save Attendance Entry with Update if Exists *****************/
     document.getElementById("saveModalEntry").addEventListener("click", function() {
       const entryDate = document.getElementById("modalEntryDate").value;
       const attendanceStatus = document.getElementById("modalAttendanceStatus").value;
@@ -516,8 +612,7 @@
       const inTime = document.getElementById("modalInTime").value;
       const outTime = document.getElementById("modalOutTime").value;
       const overtime = document.getElementById("modalOvertimeInput").value;
-      const late = document.getElementById("modalLateInput").value;
-
+      
       // বেসিক ভ্যালিডেশন
       if (!entryDate) {
         document.getElementById("modalDateError").textContent = "তারিখ নির্বাচন করুন";
@@ -531,29 +626,72 @@
       } else {
         document.getElementById("modalAttendanceError").textContent = "";
       }
+      
+      // Late time হিসাব: ইন টাইমের তুলনায় (দিবা হলে 08:00, রাত্রি হলে 20:00)
+      let lateCalculated = calculateLate(inTime, dutyType);
+      // late ইনপুট ফিল্ড আপডেট (readonly)
+      document.getElementById("modalLateInput").value = lateCalculated;
+      
+      // তারিখকে normalize করা (শুধু দিন, মাস, বছর মিলবে)
+      let entryDateObj = new Date(entryDate);
+      entryDateObj.setHours(0,0,0,0);
+      let nextDay = new Date(entryDateObj);
+      nextDay.setDate(entryDateObj.getDate() + 1);
 
       const attendanceData = {
-        date: new Date(entryDate),
+        date: entryDateObj,
         attendance: attendanceStatus,
         dutyType: dutyType,
         inTime: inTime,
         outTime: outTime,
         overtime: parseFloat(overtime) || 0,
-        late: parseInt(late) || 0
+        late: lateCalculated
       };
 
-      // বর্তমান নির্বাচিত কর্মীর under attendance কালেকশনে সংরক্ষণ
-      db.collection("employees").doc(currentEmployeeId).collection("attendance").add(attendanceData)
-        .then(() => {
-          alert("হাজিরা এন্ট্রি সংরক্ষণ করা হয়েছে");
-          // মোডাল বন্ধ করা
-          var attendanceModal = bootstrap.Modal.getInstance(document.getElementById("attendanceEntryModal"));
-          attendanceModal.hide();
-          // মাসিক রিপোর্ট রিফ্রেশ করা
-          loadMonthlyAttendance();
+      // একই তারিখে এন্ট্রি আছে কি না চেক করা
+      db.collection("employees").doc(currentEmployeeId)
+        .collection("attendance")
+        .where("date", ">=", entryDateObj)
+        .where("date", "<", nextDay)
+        .get()
+        .then((snapshot) => {
+          if(snapshot.empty) {
+            // নতুন এন্ট্রি সংরক্ষণ
+            db.collection("employees").doc(currentEmployeeId)
+              .collection("attendance")
+              .add(attendanceData)
+              .then(() => {
+                showMessage("হাজিরা এন্ট্রি সংরক্ষণ করা হয়েছে", "success");
+                var attendanceModal = bootstrap.Modal.getInstance(document.getElementById("attendanceEntryModal"));
+                attendanceModal.hide();
+                loadMonthlyAttendance();
+              })
+              .catch(error => {
+                showMessage("হাজিরা এন্ট্রি সংরক্ষণ করতে ত্রুটি: " + error.message, "danger");
+                console.error("হাজিরা এন্ট্রি সংরক্ষণ করতে ত্রুটি:", error);
+              });
+          } else {
+            // একই তারিখের এন্ট্রি আপডেট করা (প্রথমটি)
+            let docId = snapshot.docs[0].id;
+            db.collection("employees").doc(currentEmployeeId)
+              .collection("attendance")
+              .doc(docId)
+              .update(attendanceData)
+              .then(() => {
+                showMessage("একই তারিখের হাজিরা এন্ট্রি আপডেট করা হয়েছে", "success");
+                var attendanceModal = bootstrap.Modal.getInstance(document.getElementById("attendanceEntryModal"));
+                attendanceModal.hide();
+                loadMonthlyAttendance();
+              })
+              .catch(error => {
+                showMessage("হাজিরা এন্ট্রি আপডেট করতে ত্রুটি: " + error.message, "danger");
+                console.error("হাজিরা এন্ট্রি আপডেট করতে ত্রুটি:", error);
+              });
+          }
         })
         .catch(error => {
-          console.error("হাজিরা এন্ট্রি সংরক্ষণ করতে ত্রুটি:", error);
+          showMessage("এন্ট্রি খুঁজে পেতে ত্রুটি: " + error.message, "danger");
+          console.error("এন্ট্রি খুঁজে পেতে ত্রুটি:", error);
         });
     });
 
@@ -574,14 +712,13 @@
 
       db.collection("employees").add(newEmployeeData)
         .then(() => {
-          alert("নতুন কর্মী সফলভাবে যোগ করা হয়েছে");
-          // মোডাল বন্ধ করা
+          showMessage("নতুন কর্মী সফলভাবে যোগ করা হয়েছে", "success");
           var newEmployeeModal = bootstrap.Modal.getInstance(document.getElementById("newEmployeeModal"));
           newEmployeeModal.hide();
-          // কর্মী সিলেক্টর রিফ্রেশ করা
           loadEmployees();
         })
         .catch(error => {
+          showMessage("নতুন কর্মী যোগ করতে ত্রুটি: " + error.message, "danger");
           console.error("নতুন কর্মী যোগ করতে ত্রুটি:", error);
         });
     });
@@ -623,20 +760,6 @@
       
       doc.save("monthly_attendance.pdf");
     });
-
-    /***************** Theme Control via Settings Modal *****************/
-    document.getElementById("themeSelect").addEventListener("change", function() {
-      const selectedTheme = this.value;
-      if(selectedTheme === "dark"){
-        document.body.classList.add("dark-mode");
-      } else {
-        document.body.classList.remove("dark-mode");
-      }
-      localStorage.setItem("theme", selectedTheme);
-    });
-
-    // অতিরিক্ত: প্রয়োজন অনুযায়ী ইন টাইম থেকে লেট গণনার কোড যোগ করা যেতে পারে
-
   </script>
 </body>
 </html>
