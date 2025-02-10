@@ -24,6 +24,8 @@
   
   <!-- jsPDF for PDF export -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <!-- jsPDF AutoTable Plugin -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
   
   <style>
     /* ব্যাকগ্রাউন্ড গ্রেডিয়েন্ট এবং ফন্ট */
@@ -471,6 +473,17 @@
       }
     });
 
+    /***************** Modal Show Event for Duty Type Default Setup *****************/
+    $('#attendanceEntryModal').on('shown.bs.modal', function () {
+      const dutyTypeSelect = document.getElementById("modalDutyType");
+      // যদি ডিউটি টাইপের কোনো মান না থাকে, তাহলে ডিফল্ট হিসেবে 'day' (দিবা) নির্বাচন করুন
+      if (!dutyTypeSelect.value) {
+        dutyTypeSelect.value = "day";
+      }
+      // 'change' ইভেন্ট ট্রিগার করুন যাতে ইন টাইম ও আউট টাইম সঠিকভাবে সেট হয়
+      dutyTypeSelect.dispatchEvent(new Event('change'));
+    });
+
     /***************** Duty Type Default Time Setup *****************/
     document.getElementById("modalDutyType").addEventListener("change", function() {
       const duty = this.value;
@@ -732,29 +745,46 @@
     document.getElementById("pdfBtn").addEventListener("click", function() {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
-      doc.text("মাসিক হাজিরা রিপোর্ট", 14, 16);
+      
+      // Title
+      doc.setFontSize(18);
+      doc.text("মাসিক হাজিরা রিপোর্ট", 14, 22);
+      
+      // Prepare headers and data for autoTable
+      const headers = [['তারিখ', 'হাজিরা', 'ইন টাইম', 'আউট টাইম', 'ওভারটাইম', 'লেট', 'ডিউটি টাইপ']];
+      const data = [];
       
       // HTML টেবিল থেকে ডাটা সংগ্রহ করা
-      let rows = [];
       $("#attendanceTable tbody tr").each(function() {
         let row = [];
         $(this).find("td").each(function() {
-          row.push($(this).text());
+          row.push($(this).text().trim());
         });
-        rows.push(row);
+        // শুধুমাত্র সেই রো যোগ করুন যেখানে ডাটা আছে
+        if(row.length > 0 && row.some(cell => cell !== "")){
+          data.push(row);
+        }
       });
       
-      // যদি autoTable প্লাগইন থাকে, তাহলে তা ব্যবহার করা যাবে, নইলে সাধারণভাবে টেক্সট যোগ করা হবে
-      if (doc.autoTable) {
-        doc.autoTable({ 
-          head: [['তারিখ', 'হাজিরা', 'ইন টাইম', 'আউট টাইম', 'ওভারটাইম', 'লেট', 'ডিউটি টাইপ']], 
-          body: rows 
-        });
+      if(data.length === 0) {
+        doc.setFontSize(12);
+        doc.text("কোনো ডাটা পাওয়া যায়নি", 14, 40);
       } else {
-        let y = 20;
-        rows.forEach(r => {
-          doc.text(r.join(" | "), 14, y);
-          y += 10;
+        // AutoTable দিয়ে টেবিল জেনারেট করা
+        doc.autoTable({
+          head: headers,
+          body: data,
+          startY: 30,
+          theme: 'grid',
+          headStyles: { fillColor: [52, 152, 219] },
+          styles: { fontSize: 10 },
+          margin: { left: 14, right: 14 },
+          didDrawPage: function (data) {
+            // Optional: পেজ নাম্বার যোগ করা
+            let str = "Page " + doc.internal.getNumberOfPages();
+            doc.setFontSize(10);
+            doc.text(str, data.settings.margin.left, doc.internal.pageSize.height - 10);
+          }
         });
       }
       
