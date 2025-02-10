@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>হাজিরা ড্যাশবোর্ড</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+  <style>
+    body {
+      background: linear-gradient(135deg, #74ebd5, #ACB6E5);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1200px;
+      margin: auto;
+      background: rgba(255,255,255,0.3);
+      border-radius: 15px;
+      padding: 30px;
+      box-shadow: 0 8px 32px 0 rgba(31,38,135,0.37);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.18);
+    }
+    .header-section {
+      border-bottom: 2px solid rgba(255,255,255,0.6);
+      padding-bottom: 20px;
+      margin-bottom: 30px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.4);
+    }
+    .header-section h1 {
+      color: #333;
+      font-weight: 700;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+    table {
+      width: 100%;
+    }
+    th, td {
+      text-align: center;
+      padding: 5px;
+      border: 1px solid #ddd;
+    }
+    th {
+      background-color: #3498db;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- হেডার সেকশন -->
+    <div class="header-section text-center">
+      <h1><i class="fas fa-chart-line"></i> হাজিরা ড্যাশবোর্ড</h1>
+    </div>
+    
+    <!-- মোডাল ট্রিগার বাটন -->
+    <div class="mb-4 text-center">
+      <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#filterModal">
+        <i class="fas fa-filter"></i> ফিল্টার অপশন ও মাস/বছর নির্বাচন
+      </button>
+    </div>
+    
+    <!-- ড্যাশবোর্ড টেবিল -->
+    <div class="table-responsive">
+      <table id="dashboardTable" class="table table-bordered">
+        <thead id="dashboardTableHead"></thead>
+        <tbody id="dashboardTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+  
+  <!-- ফিল্টার ও মাস/বছর নির্বাচন মোডাল -->
+  <div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="filterModalLabel"><i class="fas fa-filter"></i> ফিল্টার অপশন ও মাস/বছর নির্বাচন</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="বন্ধ করুন"></button>
+        </div>
+        <div class="modal-body">
+          <!-- কর্মী আইডি দিয়ে ফিল্টার -->
+          <div class="mb-3">
+            <label for="filterId" class="form-label"><i class="fas fa-id-badge"></i> কর্মী আইডি দিয়ে ফিল্টার</label>
+            <input type="text" id="filterId" class="form-control" placeholder="উদাহরণ: 102">
+          </div>
+          <!-- নাম দিয়ে ফিল্টার -->
+          <div class="mb-3">
+            <label for="filterName" class="form-label"><i class="fas fa-user"></i> নাম দিয়ে ফিল্টার</label>
+            <input type="text" id="filterName" class="form-control" placeholder="উদাহরণ: রাজু">
+          </div>
+          <!-- মাস নির্বাচন -->
+          <div class="mb-3">
+            <label for="dashboardMonthModal" class="form-label">মাস:</label>
+            <select id="dashboardMonthModal" class="form-select">
+              <option value="0">জানুয়ারী</option>
+              <option value="1">ফেব্রুয়ারী</option>
+              <option value="2">মার্চ</option>
+              <option value="3">এপ্রিল</option>
+              <option value="4">মে</option>
+              <option value="5">জুন</option>
+              <option value="6">জুলাই</option>
+              <option value="7">আগস্ট</option>
+              <option value="8">সেপ্টেম্বর</option>
+              <option value="9">অক্টোবর</option>
+              <option value="10">নভেম্বর</option>
+              <option value="11">ডিসেম্বর</option>
+            </select>
+          </div>
+          <!-- বছর নির্বাচন -->
+          <div class="mb-3">
+            <label for="dashboardYearModal" class="form-label">বছর:</label>
+            <select id="dashboardYearModal" class="form-select"></select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">বাতিল</button>
+          <button type="button" class="btn btn-primary" id="modalApplyBtn" data-bs-dismiss="modal">
+            <i class="fas fa-check"></i> নির্বাচন প্রয়োগ করুন
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Bootstrap JS Bundle (includes Popper) -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Firebase JS SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+  
+  <script>
+    // Firebase কনফিগারেশন (আপনার প্রোজেক্ট অনুযায়ী পরিবর্তন করুন)
+    const firebaseConfig = {
+      apiKey: "AIzaSyD-WhTe1Kqx4IRaeg_w9s-diHKPE6i6uaE",
+      authDomain: "data-entry-app-3923a.firebaseapp.com",
+      databaseURL: "https://data-entry-app-3923a-default-rtdb.firebaseio.com",
+      projectId: "data-entry-app-3923a",
+      storageBucket: "data-entry-app-3923a.firebasestorage.app",
+      messagingSenderId: "638964410595",
+      appId: "1:638964410595:web:80c8ffa7fe8fc1a48cbdd6",
+      measurementId: "G-01NQ8H9KB7"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    
+    // বছর (Year) অপশনগুলো মোডালে যোগ করা
+    const dashboardYearModalSelect = document.getElementById('dashboardYearModal');
+    const currentYear = new Date().getFullYear();
+    for (let y = currentYear - 5; y <= currentYear + 5; y++) {
+      const option = document.createElement('option');
+      option.value = y;
+      option.textContent = y;
+      dashboardYearModalSelect.appendChild(option);
+    }
+    dashboardYearModalSelect.value = currentYear;
+    
+    // ডিফল্ট মাস হিসেবে বর্তমান মাস সেট করা
+    document.getElementById('dashboardMonthModal').value = new Date().getMonth();
+    
+    // মাস অনুযায়ী দিন সংখ্যা নির্ণয়ের ফাংশন
+    function daysInMonth(year, month) {
+      return new Date(year, month + 1, 0).getDate();
+    }
+    
+    // ড্যাশবোর্ড ডেটা লোড করার ফাংশন (ফিল্টার এবং মাস/বছর অনুযায়ী)
+    async function loadDashboard() {
+      // মোডালের ইনপুট থেকে ফিল্টার মান এবং মাস/বছর নির্বাচন নেওয়া
+      const filterId = document.getElementById('filterId').value.trim().toLowerCase();
+      const filterName = document.getElementById('filterName').value.trim().toLowerCase();
+      const month = parseInt(document.getElementById('dashboardMonthModal').value);
+      const year = parseInt(document.getElementById('dashboardYearModal').value);
+      const numDays = daysInMonth(year, month);
+      
+      // টেবিল হেডার তৈরি (আইডি, নাম, পদবি + প্রতিটি দিন + Total)
+      const tableHead = document.getElementById('dashboardTableHead');
+      let headerRow = '<tr><th>আইডি</th><th>নাম</th><th>পদবি</th>';
+      for (let day = 1; day <= numDays; day++) {
+        headerRow += `<th>${day}</th>`;
+      }
+      headerRow += '<th>Total</th></tr>';
+      tableHead.innerHTML = headerRow;
+      
+      const tableBody = document.getElementById('dashboardTableBody');
+      tableBody.innerHTML = '';
+      
+      // নির্বাচিত মাসের প্রথম ও শেষ তারিখ নির্ধারণ
+      const startDate = new Date(year, month, 1);
+      const endDate = new Date(year, month, numDays, 23, 59, 59);
+      
+      try {
+        // সকল কর্মী ডেটা লোড করা
+        const employeesSnapshot = await db.collection('employees').get();
+        let employees = [];
+        employeesSnapshot.forEach(doc => {
+          const data = doc.data();
+          data.docId = doc.id;
+          employees.push(data);
+        });
+        
+        // কর্মী আইডি ও নাম অনুযায়ী ফিল্টার প্রয়োগ করা
+        if (filterId) {
+          employees = employees.filter(emp => (emp.employeeId || '').toString().toLowerCase().includes(filterId));
+        }
+        if (filterName) {
+          employees = employees.filter(emp => (emp.name || '').toLowerCase().includes(filterName));
+        }
+        
+        // প্রতিটি কর্মীর জন্য, নির্বাচিত মাসের attendance এন্ট্রি লোড করা
+        const employeeRows = await Promise.all(employees.map(async (employee) => {
+          const attendanceSnapshot = await db.collection('employees')
+            .doc(employee.docId)
+            .collection('attendance')
+            .where('date', '>=', startDate)
+            .where('date', '<=', endDate)
+            .get();
+          
+          // দিনের ভিত্তিতে এন্ট্রির ম্যাপ তৈরি (key: day number)
+          const attendanceMap = {};
+          attendanceSnapshot.forEach(doc => {
+            const att = doc.data();
+            const attDate = att.date && att.date.toDate ? att.date.toDate() : new Date(att.date);
+            const day = attDate.getDate();
+            attendanceMap[day] = att;
+          });
+          
+          // কর্মী সারি তৈরি (আইডি, নাম, পদবি)
+          let row = `<tr>
+            <td>${employee.employeeId || '-'}</td>
+            <td>${employee.name || '-'}</td>
+            <td>${employee.designation || '-'}</td>`;
+          
+          let totalOvertime = 0;
+          let hasPresent = false;
+          for (let d = 1; d <= numDays; d++) {
+            let cellContent = '-';
+            if (attendanceMap[d]) {
+              const record = attendanceMap[d];
+              if (record.status === 'present') {
+                // present হলে overtime (যদি থাকে) দেখানো হবে
+                const ot = parseFloat(record.overtime) || 0;
+                cellContent = ot;
+                totalOvertime += ot;
+                hasPresent = true;
+              } else if (record.status === 'absent') {
+                cellContent = 'AB';
+              }
+            }
+            row += `<td>${cellContent}</td>`;
+          }
+          // Total কলামে, যদি present থাকলে overtime-এর যোগফল, নতুবা "AB"
+          row += `<td>${hasPresent ? totalOvertime : 'AB'}</td>`;
+          row += '</tr>';
+          return row;
+        }));
+        
+        tableBody.innerHTML = employeeRows.join('');
+      } catch (error) {
+        console.error('ড্যাশবোর্ড লোড করতে সমস্যা:', error);
+        tableBody.innerHTML = '<tr><td colspan="100%">ডেটা লোড করতে সমস্যা হয়েছে</td></tr>';
+      }
+    }
+    
+    // মোডালের "নির্বাচন প্রয়োগ করুন" বাটনে ক্লিক করলে ড্যাশবোর্ড লোড হবে
+    document.getElementById('modalApplyBtn').addEventListener('click', loadDashboard);
+    // পেজ লোডের সময়ও ড্যাশবোর্ড লোড করা
+    window.addEventListener('load', loadDashboard);
+  </script>
+</body>
+</html>
