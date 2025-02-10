@@ -256,6 +256,7 @@
                  <option value="">নির্বাচন করুন</option>
                  <option value="present">উপস্থিত</option>
                  <option value="absent">অনুপস্থিত</option>
+                 <option value="leave">ছুটি</option>
                </select>
                <span id="modalAttendanceError" class="error text-danger"></span>
              </div>
@@ -484,6 +485,20 @@
       }
     });
 
+    /***************** Attendance Status Change Event *****************/
+    document.getElementById("modalAttendanceStatus").addEventListener("change", function() {
+      // যদি হাজিরা "উপস্থিত" না হয় (অর্থাৎ absent বা leave), তাহলে টাইম ফিল্ডগুলো খালি করুন
+      if(this.value !== "present"){
+        document.getElementById("modalInTime").value = "";
+        document.getElementById("modalOutTime").value = "";
+        document.getElementById("modalOvertimeInput").value = "0";
+        document.getElementById("modalLateInput").value = "0";
+      } else {
+        // যদি পুনরায় উপস্থিত নির্বাচন করা হয়, তাহলে duty type change event ট্রিগার করে default টাইম সেট করুন
+        document.getElementById("modalDutyType").dispatchEvent(new Event('change'));
+      }
+    });
+
     /***************** Late Time Calculation Function *****************/
     function calculateLate(actualTime, dutyType) {
       let baseTime = (dutyType === "day") ? "08:00" : "20:00";
@@ -523,8 +538,9 @@
         } else {
           snapshot.forEach(doc => {
             const data = doc.data();
+            // এখন তিনটি attendance স্ট্যাটাস হ্যান্ডেল করা হচ্ছে
+            const attendance = data.attendance === "present" ? "উপস্থিত" : (data.attendance === "leave" ? "ছুটি" : "অনুপস্থিত");
             const date = data.date.toDate().toLocaleDateString('bn-BD');
-            const attendance = data.attendance === "present" ? "উপস্থিত" : "অনুপস্থিত";
             const inTime = data.inTime || "";
             const outTime = data.outTime || "";
             const overtime = data.overtime || "";
@@ -601,9 +617,9 @@
       const entryDate = document.getElementById("modalEntryDate").value;
       const attendanceStatus = document.getElementById("modalAttendanceStatus").value;
       const dutyType = document.getElementById("modalDutyType").value;
-      const inTime = document.getElementById("modalInTime").value;
-      const outTime = document.getElementById("modalOutTime").value;
-      const overtime = document.getElementById("modalOvertimeInput").value;
+      let inTime = document.getElementById("modalInTime").value;
+      let outTime = document.getElementById("modalOutTime").value;
+      let overtime = document.getElementById("modalOvertimeInput").value;
       
       if (!entryDate) {
         document.getElementById("modalDateError").textContent = "তারিখ নির্বাচন করুন";
@@ -618,7 +634,16 @@
         document.getElementById("modalAttendanceError").textContent = "";
       }
       
-      let lateCalculated = calculateLate(inTime, dutyType);
+      let lateCalculated = 0;
+      if(attendanceStatus === "present"){
+        lateCalculated = calculateLate(inTime, dutyType);
+      } else {
+        // absent বা leave হলে টাইম ফিল্ডগুলো খালি থাকবে
+        inTime = "";
+        outTime = "";
+        overtime = 0;
+        lateCalculated = 0;
+      }
       document.getElementById("modalLateInput").value = lateCalculated;
       
       let entryDateObj = new Date(entryDate);
@@ -698,7 +723,6 @@
       db.collection("employees").add(newEmployeeData)
         .then(() => {
           showMessage("নতুন কর্মী সফলভাবে যোগ করা হয়েছে", "success");
-          // ফর্মটি রিসেট করে সব ইনপুট ফিল্ড ক্লিয়ার করা
           document.getElementById("newEmployeeForm").reset();
           var newEmployeeModal = bootstrap.Modal.getInstance(document.getElementById("newEmployeeModal"));
           newEmployeeModal.hide();
