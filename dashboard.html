@@ -8,7 +8,7 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- Firebase SDK -->
+  <!-- Firebase SDK (একবারই লোড করা হয়েছে) -->
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
   <style>
@@ -132,9 +132,6 @@
   
   <!-- Bootstrap JS Bundle (includes Popper) -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-  <!-- Firebase JS SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
   
   <script>
     // Firebase কনফিগারেশন (আপনার প্রোজেক্ট অনুযায়ী পরিবর্তন করুন)
@@ -151,7 +148,7 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     
-    // বছর (Year) অপশনগুলো মোডালে যোগ করা
+    // মোডালে বছরের অপশনগুলো যোগ করা
     const dashboardYearModalSelect = document.getElementById('dashboardYearModal');
     const currentYear = new Date().getFullYear();
     for (let y = currentYear - 5; y <= currentYear + 5; y++) {
@@ -170,9 +167,9 @@
       return new Date(year, month + 1, 0).getDate();
     }
     
-    // ড্যাশবোর্ড ডেটা লোড করার ফাংশন (ফিল্টার এবং মাস/বছর অনুযায়ী)
+    // ড্যাশবোর্ড ডেটা লোড করার ফাংশন (ফিল্টার ও মাস/বছর অনুযায়ী)
     async function loadDashboard() {
-      // মোডালের ইনপুট থেকে ফিল্টার মান এবং মাস/বছর নির্বাচন নেওয়া
+      // মোডালের ইনপুট থেকে ফিল্টার মান ও মাস/বছর নেওয়া
       const filterId = document.getElementById('filterId').value.trim().toLowerCase();
       const filterName = document.getElementById('filterName').value.trim().toLowerCase();
       const month = parseInt(document.getElementById('dashboardMonthModal').value);
@@ -205,7 +202,7 @@
           employees.push(data);
         });
         
-        // কর্মী আইডি ও নাম অনুযায়ী ফিল্টার প্রয়োগ করা
+        // কর্মী আইডি ও নাম দিয়ে ফিল্টার প্রয়োগ
         if (filterId) {
           employees = employees.filter(emp => (emp.employeeId || '').toString().toLowerCase().includes(filterId));
         }
@@ -213,7 +210,7 @@
           employees = employees.filter(emp => (emp.name || '').toLowerCase().includes(filterName));
         }
         
-        // প্রতিটি কর্মীর জন্য, নির্বাচিত মাসের attendance এন্ট্রি লোড করা
+        // প্রতিটি কর্মীর জন্য নির্বাচিত মাসের attendance এন্ট্রি লোড
         const employeeRows = await Promise.all(employees.map(async (employee) => {
           const attendanceSnapshot = await db.collection('employees')
             .doc(employee.docId)
@@ -243,19 +240,18 @@
             let cellContent = '-';
             if (attendanceMap[d]) {
               const record = attendanceMap[d];
-              if (record.status === 'present') {
-                // present হলে overtime (যদি থাকে) দেখানো হবে
+              if (record.attendance === 'present') {  // এখন attendance ফিল্ড চেক করা হচ্ছে
                 const ot = parseFloat(record.overtime) || 0;
                 cellContent = ot;
                 totalOvertime += ot;
                 hasPresent = true;
-              } else if (record.status === 'absent') {
+              } else if (record.attendance === 'absent') {
                 cellContent = 'AB';
               }
             }
             row += `<td>${cellContent}</td>`;
           }
-          // Total কলামে, যদি present থাকলে overtime-এর যোগফল, নতুবা "AB"
+          // Total কলামে, যদি present থাকে তাহলে overtime-এর যোগফল, নতুবা "AB"
           row += `<td>${hasPresent ? totalOvertime : 'AB'}</td>`;
           row += '</tr>';
           return row;
