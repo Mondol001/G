@@ -3,100 +3,216 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>হাজিরা ড্যাশবোর্ড</title>
+  <title>হাজিরা ড্যাশবোর্ড - আধুনিক UI</title>
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- Firebase SDK (একবারই লোড করা হয়েছে) -->
+  <!-- jQuery (for Select2) -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <!-- Select2 CSS & JS -->
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
   <style>
+    /* Modern Dark UI */
     body {
-      background: linear-gradient(135deg, #74ebd5, #ACB6E5);
+      background: linear-gradient(135deg, #141E30, #243B55);
+      color: #A8E6CF;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       min-height: 100vh;
-      padding: 20px;
+      margin: 0;
+      padding-top: 120px; /* extra space for navbar */
     }
-    .container {
-      max-width: 1200px;
-      margin: auto;
-      background: rgba(255,255,255,0.3);
+    /* Navbar styling */
+    .navbar {
+      background-color: #0D1B2A;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    }
+    .navbar-brand, .navbar .btn {
+      color: #A8E6CF !important;
+    }
+    .navbar .btn:hover {
+      opacity: 0.85;
+    }
+    /* Inner container: পূর্বের মতো থাকবে, শুধু বর্ডার সরিয়ে ও প্রস্থ সামান্য বাড়ানো */
+    .inner-container {
+      background: rgba(20, 30, 40, 0.95);
       border-radius: 15px;
       padding: 30px;
-      box-shadow: 0 8px 32px 0 rgba(31,38,135,0.37);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      border: 1px solid rgba(255,255,255,0.18);
+      margin-top: 20px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.7);
+      transition: transform 0.5s ease;
+      /* পূর্বের বর্ডার সরানো হয়েছে */
+      /* border: 1px solid #A8E6CF; */
+      width: 100%;
+      max-width: 1200px;  /* বড় স্ক্রিনে বড়, মোবাইলে স্বয়ংক্রিয়ভাবে ফিট হবে */
+      margin-left: auto;
+      margin-right: auto;
     }
-    .header-section {
-      border-bottom: 2px solid rgba(255,255,255,0.6);
-      padding-bottom: 20px;
-      margin-bottom: 30px;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.4);
+    .inner-container:hover {
+      transform: translateY(-5px);
     }
-    .header-section h1 {
-      color: #333;
-      font-weight: 700;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-    }
-    table {
+    /* Table styling */
+    .table {
+      color: #A8E6CF;
       width: 100%;
     }
-    th, td {
+    .table th, .table td {
       text-align: center;
-      padding: 5px;
-      border: 1px solid #ddd;
+      vertical-align: middle;
+      border: 1px solid #A8E6CF;
     }
-    th {
-      background-color: #3498db;
-      color: #fff;
+    .table th {
+      background-color: #1B263B;
+    }
+    td[contenteditable="true"] {
+      cursor: text;
+      transition: background-color 0.3s;
+    }
+    td[contenteditable="true"]:hover {
+      background-color: rgba(168,230,207,0.1);
+    }
+    /* Toast container */
+    #toastContainer {
+      position: fixed;
+      top: 100px;
+      right: 20px;
+      z-index: 1055;
+    }
+    /* Report Modal Styling */
+    #reportModal .modal-content {
+      background-color: #0D1B2A;
+      color: #A8E6CF;
+      border: 1px solid #A8E6CF;
+    }
+    #reportModal .modal-header .btn-close {
+      filter: invert(1);
+    }
+    #reportModal .table th {
+      background-color: #1B263B;
+    }
+    /* Filter Modal Dark Theme */
+    #filterModal .modal-content {
+      background-color: #0D1B2A;
+      color: #A8E6CF;
+      border: 1px solid #A8E6CF;
+    }
+    #filterModal .modal-content label {
+      color: #A8E6CF;
+    }
+    #filterModal .modal-content .form-control,
+    #filterModal .modal-content .form-select {
+      background-color: #0D1B2A;
+      color: #A8E6CF;
+      border: 1px solid #A8E6CF;
+    }
+    #filterModal .modal-header .btn-close {
+      filter: invert(1);
+    }
+    /* Add Employee Modal Dark Theme */
+    #addEmployeeModal .modal-content {
+      background-color: #0D1B2A;
+      color: #A8E6CF;
+      border: 1px solid #A8E6CF;
+    }
+    #addEmployeeModal .modal-content label {
+      color: #A8E6CF;
+    }
+    #addEmployeeModal .modal-content input.form-control {
+      background-color: #0D1B2A;
+      color: #A8E6CF;
+      border: 1px solid #A8E6CF;
+    }
+    #addEmployeeModal .modal-header .btn-close {
+      filter: invert(1);
+    }
+    /* Custom Dark Theme for Select2 */
+    .select2-container--default .select2-selection--single {
+      background-color: #0D1B2A;
+      border: 1px solid #A8E6CF;
+      border-radius: 0.375rem;
+      color: #A8E6CF;
+      padding: 0.375rem 0.75rem;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+      color: #A8E6CF;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+      filter: invert(1);
+    }
+    .select2-container--default .select2-dropdown {
+      background-color: #0D1B2A;
+      border: 1px solid #A8E6CF;
+    }
+    .select2-container--default .select2-results__option {
+      color: #A8E6CF;
+    }
+    .select2-container--default .select2-results__option--highlighted {
+      background-color: #1B263B;
+    }
+    /* Additional spacing for main content */
+    .main-content {
+      margin-bottom: 40px;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <!-- হেডার সেকশন -->
-    <div class="header-section text-center">
-      <h1><i class="fas fa-chart-line"></i> হাজিরা ড্যাশবোর্ড</h1>
+  <!-- Navbar (ফিক্সড) -->
+  <nav class="navbar navbar-expand-lg fixed-top">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#"><i class="fas fa-chart-line"></i> হাজিরা ড্যাশবোর্ড</a>
+      <div class="d-flex">
+        <button class="btn btn-success me-2" id="saveBtn">
+          <i class="fas fa-save"></i> সেভ
+        </button>
+        <button class="btn btn-secondary me-2" data-bs-toggle="modal" data-bs-target="#filterModal">
+          <i class="fas fa-filter"></i> ফিল্টার
+        </button>
+        <button class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#addEmployeeModal">
+          <i class="fas fa-user-plus"></i> কর্মী যোগ করুন
+        </button>
+        <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#reportModal">
+          <i class="fas fa-file-alt"></i> ইন্ডিভিজুয়াল রিপোর্ট
+        </button>
+      </div>
     </div>
-    
-    <!-- মোডাল ট্রিগার বাটন -->
-    <div class="mb-4 text-center">
-      <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#filterModal">
-        <i class="fas fa-filter"></i> ফিল্টার অপশন ও মাস/বছর নির্বাচন
-      </button>
-    </div>
-    
-    <!-- ড্যাশবোর্ড টেবিল -->
-    <div class="table-responsive">
-      <table id="dashboardTable" class="table table-bordered">
-        <thead id="dashboardTableHead"></thead>
-        <tbody id="dashboardTableBody"></tbody>
-      </table>
+  </nav>
+  
+  <!-- Toast Notifications Container -->
+  <div id="toastContainer"></div>
+  
+  <!-- Main Dashboard Content -->
+  <div class="container main-content">
+    <div class="inner-container">
+      <div class="table-responsive">
+        <table id="dashboardTable" class="table table-bordered">
+          <thead id="dashboardTableHead"></thead>
+          <tbody id="dashboardTableBody"></tbody>
+        </table>
+      </div>
     </div>
   </div>
   
-  <!-- ফিল্টার ও মাস/বছর নির্বাচন মোডাল -->
+  <!-- Filter Modal -->
   <div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="filterModalLabel"><i class="fas fa-filter"></i> ফিল্টার অপশন ও মাস/বছর নির্বাচন</h5>
+          <h5 class="modal-title" id="filterModalLabel"><i class="fas fa-filter"></i> ফিল্টার ও মাস/বছর নির্বাচন</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="বন্ধ করুন"></button>
         </div>
         <div class="modal-body">
-          <!-- কর্মী আইডি দিয়ে ফিল্টার -->
           <div class="mb-3">
-            <label for="filterId" class="form-label"><i class="fas fa-id-badge"></i> কর্মী আইডি দিয়ে ফিল্টার</label>
+            <label for="filterId" class="form-label"><i class="fas fa-id-badge"></i> কর্মী আইডি</label>
             <input type="text" id="filterId" class="form-control" placeholder="উদাহরণ: 102">
           </div>
-          <!-- নাম দিয়ে ফিল্টার -->
           <div class="mb-3">
-            <label for="filterName" class="form-label"><i class="fas fa-user"></i> নাম দিয়ে ফিল্টার</label>
+            <label for="filterName" class="form-label"><i class="fas fa-user"></i> নাম</label>
             <input type="text" id="filterName" class="form-control" placeholder="উদাহরণ: রাজু">
           </div>
-          <!-- মাস নির্বাচন -->
           <div class="mb-3">
             <label for="dashboardMonthModal" class="form-label">মাস:</label>
             <select id="dashboardMonthModal" class="form-select">
@@ -114,7 +230,6 @@
               <option value="11">ডিসেম্বর</option>
             </select>
           </div>
-          <!-- বছর নির্বাচন -->
           <div class="mb-3">
             <label for="dashboardYearModal" class="form-label">বছর:</label>
             <select id="dashboardYearModal" class="form-select"></select>
@@ -130,11 +245,123 @@
     </div>
   </div>
   
+  <!-- Add Employee Modal -->
+  <div class="modal fade" id="addEmployeeModal" tabindex="-1" aria-labelledby="addEmployeeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="addEmployeeModalLabel"><i class="fas fa-user-plus"></i> নতুন কর্মী যোগ করুন</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="বন্ধ করুন"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="newEmployeeId" class="form-label">কর্মী আইডি</label>
+            <input type="text" id="newEmployeeId" class="form-control" placeholder="উদাহরণ: 103">
+          </div>
+          <div class="mb-3">
+            <label for="newEmployeeName" class="form-label">নাম</label>
+            <input type="text" id="newEmployeeName" class="form-control" placeholder="উদাহরণ: সুমন">
+          </div>
+          <div class="mb-3">
+            <label for="newEmployeeDesignation" class="form-label">পদবি</label>
+            <input type="text" id="newEmployeeDesignation" class="form-control" placeholder="উদাহরণ: কর্মচারী">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">বাতিল</button>
+          <button type="button" class="btn btn-primary" id="addEmployeeBtn" data-bs-dismiss="modal">
+            <i class="fas fa-check"></i> যোগ করুন
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Individual Report Modal -->
+  <div class="modal fade" id="reportModal" tabindex="-1" aria-labelledby="reportModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="reportModalLabel">হাজিরা রিপোর্ট</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="বন্ধ করুন"></button>
+        </div>
+        <div class="modal-body">
+          <!-- Dynamic Select2 dropdown for employee selection -->
+          <div class="row mb-3">
+            <div class="col-md-4">
+              <label for="reportEmployeeSelect" class="form-label">কর্মী নির্বাচন</label>
+              <select id="reportEmployeeSelect" class="form-select" style="width: 100%;">
+                <!-- অপশনগুলো ডাইনামিকভাবে লোড হবে -->
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label for="reportMonth" class="form-label">মাস</label>
+              <select id="reportMonth" class="form-select">
+                <option value="0">জানুয়ারী</option>
+                <option value="1">ফেব্রুয়ারী</option>
+                <option value="2">মার্চ</option>
+                <option value="3">এপ্রিল</option>
+                <option value="4">মে</option>
+                <option value="5">জুন</option>
+                <option value="6">জুলাই</option>
+                <option value="7">আগস্ট</option>
+                <option value="8">সেপ্টেম্বর</option>
+                <option value="9">অক্টোবর</option>
+                <option value="10">নভেম্বর</option>
+                <option value="11">ডিসেম্বর</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label for="reportYear" class="form-label">বছর</label>
+              <select id="reportYear" class="form-select"></select>
+            </div>
+          </div>
+          <!-- রিপোর্ট কন্টেন্ট -->
+          <div id="reportContent" style="display:none;">
+            <div class="mb-3">
+              <h4>হাজিরা রিপোর্ট</h4>
+              <p id="reportDate"></p>
+              <p><strong>আইডি:</strong> <span id="reportEmployeeIdDisplay"></span></p>
+              <p><strong>নাম:</strong> <span id="reportEmployeeName"></span></p>
+              <p><strong>পদবি:</strong> <span id="reportEmployeeDesignation"></span></p>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-bordered">
+                <thead>
+                  <tr>
+                    <th>তারিখ</th>
+                    <th>ওভার টাইম/অন্য</th>
+                    <th>নোট</th>
+                  </tr>
+                </thead>
+                <tbody id="reportTableBody"></tbody>
+              </table>
+            </div>
+            <div class="mt-3">
+              <p><strong>টোটাল ওভার টাইম:</strong> <span id="totalOvertime"></span></p>
+              <p><strong>টোটাল প্রেজেন্ট:</strong> <span id="totalPresent"></span></p>
+              <p><strong>টোটাল এবসেন্ট:</strong> <span id="totalAbsent"></span></p>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">বন্ধ করুন</button>
+          <button type="button" class="btn btn-success" id="saveReportBtn">
+            <i class="fas fa-save"></i> সেভ রিপোর্ট
+          </button>
+          <button type="button" class="btn btn-info" id="printReportBtn">
+            <i class="fas fa-print"></i> প্রিন্ট
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
   <!-- Bootstrap JS Bundle (includes Popper) -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
   
   <script>
-    // Firebase কনফিগারেশন (আপনার প্রোজেক্ট অনুযায়ী পরিবর্তন করুন)
+    // Firebase configuration (update as per your project)
     const firebaseConfig = {
       apiKey: "AIzaSyD-WhTe1Kqx4IRaeg_w9s-diHKPE6i6uaE",
       authDomain: "data-entry-app-3923a.firebaseapp.com",
@@ -148,52 +375,111 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     
-    // মোডালে বছরের অপশনগুলো যোগ করা
-    const dashboardYearModalSelect = document.getElementById('dashboardYearModal');
-    const currentYear = new Date().getFullYear();
-    for (let y = currentYear - 5; y <= currentYear + 5; y++) {
-      const option = document.createElement('option');
-      option.value = y;
-      option.textContent = y;
-      dashboardYearModalSelect.appendChild(option);
+    // Global variables for report context
+    let currentReportEmployeeDocId = "";
+    let currentReportYear = 0;
+    let currentReportMonth = 0;
+    
+    // Toast notification function
+    function showToast(message, type = 'success') {
+      const toastId = 'toast' + Date.now();
+      const toastHtml = `
+        <div id="${toastId}" class="toast align-items-center text-bg-${type} border-0 mb-2" role="alert" aria-live="assertive" aria-atomic="true">
+          <div class="d-flex">
+            <div class="toast-body">
+              ${message}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="বন্ধ"></button>
+          </div>
+        </div>`;
+      const toastContainer = document.getElementById('toastContainer');
+      toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+      const toastElement = document.getElementById(toastId);
+      const bsToast = new bootstrap.Toast(toastElement, { delay: 3000 });
+      bsToast.show();
+      toastElement.addEventListener('hidden.bs.toast', () => {
+        toastElement.remove();
+      });
     }
-    dashboardYearModalSelect.value = currentYear;
     
-    // ডিফল্ট মাস হিসেবে বর্তমান মাস সেট করা
+    // Populate year options for both dashboard and report modals
+    const dashboardYearModalSelect = document.getElementById('dashboardYearModal');
+    const reportYearSelect = document.getElementById('reportYear');
+    const currentYearVal = new Date().getFullYear();
+    for (let y = currentYearVal - 5; y <= currentYearVal + 5; y++) {
+      const option1 = document.createElement('option');
+      option1.value = y;
+      option1.textContent = y;
+      dashboardYearModalSelect.appendChild(option1);
+      
+      const option2 = document.createElement('option');
+      option2.value = y;
+      option2.textContent = y;
+      reportYearSelect.appendChild(option2);
+    }
+    dashboardYearModalSelect.value = currentYearVal;
+    reportYearSelect.value = currentYearVal;
+    
+    // Set default month
     document.getElementById('dashboardMonthModal').value = new Date().getMonth();
+    document.getElementById('reportMonth').value = new Date().getMonth();
     
-    // মাস অনুযায়ী দিন সংখ্যা নির্ণয়ের ফাংশন
+    // Initialize Select2 for employee dropdown in report modal with dropdownParent option
+    function loadReportEmployeeOptions() {
+      db.collection('employees').get().then(snapshot => {
+        let options = '<option value="">-- কর্মী নির্বাচন করুন --</option>';
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          options += `<option value="${doc.id}" data-empid="${data.employeeId}">${data.employeeId} - ${data.name}</option>`;
+        });
+        $('#reportEmployeeSelect').html(options).trigger('change');
+      }).catch(err => {
+        console.error("কর্মী অপশন লোড করতে সমস্যা:", err);
+      });
+    }
+    
+    // Initialize Select2
+    $(document).ready(function() {
+      $('#reportEmployeeSelect').select2({
+        placeholder: "-- কর্মী নির্বাচন করুন --",
+        width: 'resolve',
+        dropdownParent: $('#reportModal')
+      });
+      loadReportEmployeeOptions();
+      
+      // On change, generate report automatically
+      $('#reportEmployeeSelect').on('change', function() {
+        generateReport();
+      });
+    });
+    
+    // Utility: Calculate number of days in month
     function daysInMonth(year, month) {
       return new Date(year, month + 1, 0).getDate();
     }
     
-    // ড্যাশবোর্ড ডেটা লোড করার ফাংশন (ফিল্টার ও মাস/বছর অনুযায়ী)
+    // Load Dashboard Data
     async function loadDashboard() {
-      // মোডালের ইনপুট থেকে ফিল্টার মান ও মাস/বছর নেওয়া
       const filterId = document.getElementById('filterId').value.trim().toLowerCase();
       const filterName = document.getElementById('filterName').value.trim().toLowerCase();
       const month = parseInt(document.getElementById('dashboardMonthModal').value);
       const year = parseInt(document.getElementById('dashboardYearModal').value);
       const numDays = daysInMonth(year, month);
       
-      // টেবিল হেডার তৈরি (আইডি, নাম, পদবি + প্রতিটি দিন + Total)
-      const tableHead = document.getElementById('dashboardTableHead');
       let headerRow = '<tr><th>আইডি</th><th>নাম</th><th>পদবি</th>';
       for (let day = 1; day <= numDays; day++) {
         headerRow += `<th>${day}</th>`;
       }
       headerRow += '<th>Total</th></tr>';
-      tableHead.innerHTML = headerRow;
+      document.getElementById('dashboardTableHead').innerHTML = headerRow;
       
       const tableBody = document.getElementById('dashboardTableBody');
       tableBody.innerHTML = '';
       
-      // নির্বাচিত মাসের প্রথম ও শেষ তারিখ নির্ধারণ
       const startDate = new Date(year, month, 1);
       const endDate = new Date(year, month, numDays, 23, 59, 59);
       
       try {
-        // সকল কর্মী ডেটা লোড করা
         const employeesSnapshot = await db.collection('employees').get();
         let employees = [];
         employeesSnapshot.forEach(doc => {
@@ -202,7 +488,6 @@
           employees.push(data);
         });
         
-        // কর্মী আইডি ও নাম দিয়ে ফিল্টার প্রয়োগ
         if (filterId) {
           employees = employees.filter(emp => (emp.employeeId || '').toString().toLowerCase().includes(filterId));
         }
@@ -210,7 +495,6 @@
           employees = employees.filter(emp => (emp.name || '').toLowerCase().includes(filterName));
         }
         
-        // প্রতিটি কর্মীর জন্য নির্বাচিত মাসের attendance এন্ট্রি লোড
         const employeeRows = await Promise.all(employees.map(async (employee) => {
           const attendanceSnapshot = await db.collection('employees')
             .doc(employee.docId)
@@ -219,7 +503,6 @@
             .where('date', '<=', endDate)
             .get();
           
-          // দিনের ভিত্তিতে এন্ট্রির ম্যাপ তৈরি (key: day number)
           const attendanceMap = {};
           attendanceSnapshot.forEach(doc => {
             const att = doc.data();
@@ -228,16 +511,15 @@
             attendanceMap[day] = att;
           });
           
-          // কর্মী সারি তৈরি (আইডি, নাম, পদবি)
-          let row = `<tr>
-            <td>${employee.employeeId || '-'}</td>
-            <td>${employee.name || '-'}</td>
-            <td>${employee.designation || '-'}</td>`;
+          let row = `<tr data-docid="${employee.docId}">
+            <td>${employee.employeeId || ''}</td>
+            <td>${employee.name || ''}</td>
+            <td>${employee.designation || ''}</td>`;
           
           let totalOvertime = 0;
           let hasPresent = false;
           for (let d = 1; d <= numDays; d++) {
-            let cellContent = '-';
+            let cellContent = '';
             if (attendanceMap[d]) {
               const record = attendanceMap[d];
               if (record.attendance === 'present') {
@@ -251,10 +533,9 @@
                 cellContent = 'LV';
               }
             }
-            row += `<td>${cellContent}</td>`;
+            row += `<td contenteditable="true" data-day="${d}">${cellContent}</td>`;
           }
-          // Total কলামে, যদি present থাকে তাহলে overtime-এর যোগফল, নতুবা "AB"
-          row += `<td>${hasPresent ? totalOvertime : 'AB'}</td>`;
+          row += `<td>${hasPresent ? totalOvertime : ''}</td>`;
           row += '</tr>';
           return row;
         }));
@@ -266,10 +547,277 @@
       }
     }
     
-    // মোডালের "নির্বাচন প্রয়োগ করুন" বাটনে ক্লিক করলে ড্যাশবোর্ড লোড হবে
+    // Editable cells: Save old value on focus (Dashboard)
+    document.addEventListener('focusin', function(e) {
+      const cell = e.target;
+      if (cell.hasAttribute('contenteditable')) {
+        cell.dataset.oldValue = cell.textContent;
+      }
+    });
+    
+    document.addEventListener('keydown', function(e) {
+      const cell = e.target;
+      if (cell.hasAttribute('contenteditable')) {
+        if (e.key === "Escape") {
+          if (cell.dataset.oldValue !== undefined) {
+            cell.textContent = cell.dataset.oldValue;
+          }
+          cell.blur();
+        } else if (e.key === "Enter") {
+          e.preventDefault();
+          cell.blur();
+        }
+      }
+    });
+    
+    // Save Dashboard Edits using Firestore Batch
+    async function saveDashboardEdits() {
+      const month = parseInt(document.getElementById('dashboardMonthModal').value);
+      const year = parseInt(document.getElementById('dashboardYearModal').value);
+      const rows = document.querySelectorAll('#dashboardTableBody tr');
+      const batch = db.batch();
+      
+      rows.forEach(row => {
+        const docId = row.getAttribute('data-docid');
+        const cells = row.querySelectorAll('td[data-day]');
+        cells.forEach(cell => {
+          const day = parseInt(cell.getAttribute('data-day'));
+          const cellValue = cell.textContent.trim();
+          const formattedMonth = (month + 1).toString().padStart(2, '0');
+          const formattedDay = day.toString().padStart(2, '0');
+          const recordId = `${year}-${formattedMonth}-${formattedDay}`;
+          const recordDate = new Date(year, month, day);
+          const attendanceRef = db.collection('employees').doc(docId).collection('attendance').doc(recordId);
+          
+          if (cellValue === '') {
+            batch.delete(attendanceRef);
+          } else if (cellValue.toUpperCase() === 'AB') {
+            batch.set(attendanceRef, {
+              attendance: 'absent',
+              overtime: 0,
+              date: recordDate
+            });
+          } else if (cellValue.toUpperCase() === 'LV') {
+            batch.set(attendanceRef, {
+              attendance: 'leave',
+              overtime: 0,
+              date: recordDate
+            });
+          } else if (!isNaN(parseFloat(cellValue))) {
+            const ot = parseFloat(cellValue);
+            batch.set(attendanceRef, {
+              attendance: 'present',
+              overtime: ot,
+              date: recordDate
+            });
+          }
+        });
+      });
+      
+      try {
+        await batch.commit();
+        showToast('ড্যাশবোর্ড ডেটা সফলভাবে সেভ হয়েছে', 'success');
+        loadDashboard();
+        // If report modal is open, refresh report too
+        if(document.getElementById('reportModal').classList.contains('show') && currentReportEmployeeDocId) {
+          generateReport();
+        }
+      } catch (error) {
+        console.error('ড্যাশবোর্ড সেভ করতে সমস্যা:', error);
+        showToast('ড্যাশবোর্ড সেভ করতে সমস্যা হয়েছে', 'danger');
+      }
+    }
+    
+    // Add Employee
+    async function addEmployee() {
+      const employeeId = document.getElementById('newEmployeeId').value.trim();
+      const name = document.getElementById('newEmployeeName').value.trim();
+      const designation = document.getElementById('newEmployeeDesignation').value.trim();
+      
+      if (!employeeId || !name || !designation) {
+        showToast('সবগুলো ক্ষেত্র পূরণ করুন', 'warning');
+        return;
+      }
+      
+      try {
+        await db.collection('employees').add({
+          employeeId: employeeId,
+          name: name,
+          designation: designation
+        });
+        showToast('নতুন কর্মী সফলভাবে যোগ হয়েছে', 'success');
+        loadDashboard();
+        loadReportEmployeeOptions(); // Refresh dropdown options
+        document.getElementById('newEmployeeId').value = '';
+        document.getElementById('newEmployeeName').value = '';
+        document.getElementById('newEmployeeDesignation').value = '';
+      } catch (error) {
+        console.error('কর্মী যোগ করতে সমস্যা:', error);
+        showToast('কর্মী যোগ করতে সমস্যা হয়েছে', 'danger');
+      }
+    }
+    
+    // Event Listeners for Dashboard
+    document.getElementById('saveBtn').addEventListener('click', saveDashboardEdits);
     document.getElementById('modalApplyBtn').addEventListener('click', loadDashboard);
-    // পেজ লোডের সময়ও ড্যাশবোর্ড লোড করা
+    document.getElementById('addEmployeeBtn').addEventListener('click', addEmployee);
     window.addEventListener('load', loadDashboard);
+    
+    // ---------- Individual Report Functions ----------
+    async function generateReport() {
+      // Read selected employee from the Select2 dropdown
+      const employeeDocId = $('#reportEmployeeSelect').val();
+      if (!employeeDocId) {
+        showToast("কর্মী নির্বাচন করুন", "warning");
+        document.getElementById('reportContent').style.display = "none";
+        return;
+      }
+      
+      // Get employee data for display
+      const employeeDoc = await db.collection('employees').doc(employeeDocId).get();
+      const employeeData = employeeDoc.data();
+      document.getElementById('reportEmployeeIdDisplay').textContent = employeeData.employeeId;
+      document.getElementById('reportEmployeeName').textContent = employeeData.name;
+      document.getElementById('reportEmployeeDesignation').textContent = employeeData.designation;
+      
+      // Set global report context
+      const month = parseInt(document.getElementById('reportMonth').value);
+      const year = parseInt(document.getElementById('reportYear').value);
+      currentReportEmployeeDocId = employeeDocId;
+      currentReportMonth = month;
+      currentReportYear = year;
+      
+      const monthNames = ["জানুয়ারী","ফেব্রুয়ারী","মার্চ","এপ্রিল","মে","জুন","জুলাই","আগস্ট","সেপ্টেম্বর","অক্টোবর","নভেম্বর","ডিসেম্বর"];
+      document.getElementById('reportDate').textContent = "রিপোর্টের মাস: " + monthNames[month] + ", " + year;
+      
+      const numDays = daysInMonth(year, month);
+      const startDate = new Date(year, month, 1);
+      const endDate = new Date(year, month, numDays, 23, 59, 59);
+      
+      const attendanceSnapshot = await db.collection('employees').doc(employeeDocId)
+        .collection('attendance')
+        .where('date', '>=', startDate)
+        .where('date', '<=', endDate)
+        .get();
+      const attendanceMap = {};
+      attendanceSnapshot.forEach(doc => {
+        const data = doc.data();
+        const attDate = data.date && data.date.toDate ? data.date.toDate() : new Date(data.date);
+        const day = attDate.getDate();
+        attendanceMap[day] = data;
+      });
+      
+      let tableRows = "";
+      let totalOvertime = 0;
+      let totalPresent = 0;
+      let totalAbsent = 0;
+      for (let d = 1; d <= numDays; d++) {
+        const dateStr = `${d}-${month+1}-${year}`;
+        let overtimeVal = "";
+        let note = "";
+        if (attendanceMap[d]) {
+          const record = attendanceMap[d];
+          if (record.attendance === 'present') {
+            overtimeVal = record.overtime || 0;
+            totalOvertime += parseFloat(overtimeVal);
+            totalPresent += 1;
+          } else if (record.attendance === 'absent') {
+            overtimeVal = "AB";
+            totalAbsent += 1;
+          } else if (record.attendance === 'leave') {
+            overtimeVal = "LV";
+          }
+          note = record.note || "";
+        }
+        tableRows += `<tr data-day="${d}">
+          <td>${dateStr}</td>
+          <td contenteditable="true" class="report-overtime" data-day="${d}">${overtimeVal}</td>
+          <td contenteditable="true" class="report-note" data-day="${d}">${note}</td>
+        </tr>`;
+      }
+      document.getElementById('reportTableBody').innerHTML = tableRows;
+      document.getElementById('totalOvertime').textContent = totalOvertime;
+      document.getElementById('totalPresent').textContent = totalPresent;
+      document.getElementById('totalAbsent').textContent = totalAbsent;
+      document.getElementById('reportContent').style.display = "block";
+    }
+    
+    // Save Report: When "সেভ রিপোর্ট" is clicked
+    document.getElementById('saveReportBtn').addEventListener('click', async function(){
+      if (!currentReportEmployeeDocId) {
+        showToast("প্রথমে রিপোর্ট জেনারেট করুন", "warning");
+        return;
+      }
+      const month = currentReportMonth;
+      const year = currentReportYear;
+      const rows = document.querySelectorAll('#reportTableBody tr');
+      const batch = db.batch();
+      
+      rows.forEach(row => {
+        const day = row.getAttribute('data-day');
+        const overtimeCell = row.querySelector('.report-overtime');
+        const noteCell = row.querySelector('.report-note');
+        const overtimeVal = overtimeCell.textContent.trim();
+        const noteVal = noteCell.textContent.trim();
+        const formattedMonth = (month + 1).toString().padStart(2, '0');
+        const formattedDay = day.toString().padStart(2, '0');
+        const recordId = `${year}-${formattedMonth}-${formattedDay}`;
+        const recordDate = new Date(year, month, parseInt(day));
+        const attendanceRef = db.collection('employees').doc(currentReportEmployeeDocId)
+          .collection('attendance').doc(recordId);
+        if (overtimeVal === '') {
+          batch.delete(attendanceRef);
+        } else if (overtimeVal.toUpperCase() === 'AB') {
+          batch.set(attendanceRef, {
+            attendance: 'absent',
+            overtime: 0,
+            date: recordDate,
+            note: noteVal
+          });
+        } else if (overtimeVal.toUpperCase() === 'LV') {
+          batch.set(attendanceRef, {
+            attendance: 'leave',
+            overtime: 0,
+            date: recordDate,
+            note: noteVal
+          });
+        } else if (!isNaN(parseFloat(overtimeVal))) {
+          const ot = parseFloat(overtimeVal);
+          batch.set(attendanceRef, {
+            attendance: 'present',
+            overtime: ot,
+            date: recordDate,
+            note: noteVal
+          });
+        }
+      });
+      
+      try {
+        await batch.commit();
+        showToast("রিপোর্ট সফলভাবে সেভ হয়েছে", "success");
+        // Refresh both Report and Dashboard
+        generateReport();
+        loadDashboard();
+      } catch (err) {
+        console.error("রিপোর্ট সেভ করতে সমস্যা:", err);
+        showToast("রিপোর্ট সেভ করতে সমস্যা হয়েছে", "danger");
+      }
+    });
+    
+    // Print Report
+    document.getElementById('printReportBtn').addEventListener('click', function(){
+      window.print();
+    });
+    
+    // Global real-time listener (using Firestore onSnapshot on attendance group)
+    db.collectionGroup('attendance').onSnapshot(() => {
+      loadDashboard();
+      // If report modal is open and an employee is selected, refresh report
+      if(document.getElementById('reportModal').classList.contains('show') && currentReportEmployeeDocId) {
+        generateReport();
+      }
+    });
+    
   </script>
 </body>
 </html>
